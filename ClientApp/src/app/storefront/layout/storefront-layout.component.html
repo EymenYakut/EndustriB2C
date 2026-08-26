@@ -1,0 +1,72 @@
+<div class="sf">
+  <div class="topbar">
+    <div class="container-xl d-flex justify-content-between align-items-center">
+      <span>Email: info@teknofleks.com.tr &nbsp;|&nbsp; Tel: +90 216 428 53 81</span>
+      <span>Kadıköy / İstanbul</span>
+    </div>
+  </div>
+
+  <header class="sf-header">
+    <div class="container-xl d-flex align-items-center justify-content-between gap-3">
+      <a routerLink="/" class="brand">
+        <span class="brand-mark">TF</span>
+        <span>
+          <strong>TEKNOFLEKS</strong>
+          <small>Endüstri Ürünleri</small>
+        </span>
+      </a>
+      <button class="nav-toggle" type="button" (click)="menuOpen = !menuOpen">☰</button>
+      <nav class="sf-nav" [class.open]="menuOpen">
+        <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}" (click)="menuOpen=false">Ana Sayfa</a>
+        <a routerLink="/urunler" routerLinkActive="active" (click)="menuOpen=false">Ürünler</a>
+        <a routerLink="/hakkimizda" routerLinkActive="active" (click)="menuOpen=false">Hakkımızda</a>
+        <a routerLink="/iletisim" routerLinkActive="active" (click)="menuOpen=false">İletişim</a>
+      </nav>
+      <div class="sf-actions">
+        <a routerLink="/sepet" class="icon-btn" title="Sepet">
+          Sepet
+          <span class="badge-count" *ngIf="api.cartCount">{{ api.cartCount }}</span>
+        </a>
+        <ng-container *ngIf="auth.user as user; else guest">
+          <a routerLink="/hesabim">{{ user.firstName }}</a>
+          <a *ngIf="auth.isAdmin" routerLink="/admin">Yönetim</a>
+          <button class="linkish" type="button" (click)="logout()">Çıkış</button>
+        </ng-container>
+        <ng-template #guest>
+          <a routerLink="/giris">Giriş</a>
+          <a routerLink="/kayit" class="btn-accent">Kayıt Ol</a>
+        </ng-template>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <router-outlet></router-outlet>
+  </main>
+
+  <footer class="sf-footer">
+    <div class="container-xl footer-grid">
+      <div>
+        <h4>Teknofleks Endüstri Ürünleri A.Ş.</h4>
+        <p>2005 yılından beri endüstriyel hortum ve ekipman çözümleri. Avrupa’nın köklü markalarının Türkiye distribütörü.</p>
+      </div>
+      <div>
+        <h4>Hızlı Linkler</h4>
+        <a routerLink="/">Ana Sayfa</a>
+        <a routerLink="/urunler">Ürünler</a>
+        <a routerLink="/hakkimizda">Hakkımızda</a>
+        <a routerLink="/iletisim">İletişim</a>
+      </div>
+      <div>
+        <h4>Kategoriler</h4>
+        <a *ngFor="let c of footerCategories" routerLink="/urunler" [queryParams]="{category: c.slug}">{{ c.name }}</a>
+      </div>
+      <div>
+        <h4>İletişim</h4>
+        <p>Sahrayıcedit Mah. Atatürk Cad. No: 69 D:100<br>34734 Kadıköy / İstanbul</p>
+        <p>T: +90 216 428 53 81<br>E: info@teknofleks.com.tr</p>
+      </div>
+    </div>
+    <div class="copy">© 2026 Teknofleks Endüstri Ürünleri A.Ş. — Tüm hakları saklıdır.</div>
+  </footer>
+</div>

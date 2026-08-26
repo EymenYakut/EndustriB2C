@@ -1,0 +1,9 @@
+<h1>Kontrol paneli</h1>
+<div class="dash-grid" *ngIf="data">
+  <div class="dash-card"><span>Müşteriler</span><strong>{{ data.customers }}</strong></div>
+  <div class="dash-card"><span>Aktif ürün</span><strong>{{ data.products }}</strong></div>
+  <div class="dash-card"><span>Sipariş</span><strong>{{ data.orders }}</strong></div>
+  <div class="dash-card"><span>Bekleyen</span><strong>{{ data.pendingOrders }}</strong></div>
+  <div class="dash-card"><span>Ciro</span><strong>{{ data.revenue | number:'1.2-2' }} TRY</strong></div>
+  <div class="dash-card"><span>Aktif kampanya</span><strong>{{ data.activeCampaigns }}</strong></div>
+</div>

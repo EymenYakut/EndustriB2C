@@ -1,0 +1,37 @@
+<div class="admin-head">
+  <h1>Kampanyalar</h1>
+  <button class="btn-accent" type="button" (click)="startNew()">Yeni kampanya</button>
+</div>
+<table class="admin-table">
+  <tr><th>Ad</th><th>İndirim</th><th>Kupon</th><th>Tarih</th><th>Durum</th><th></th></tr>
+  <tr *ngFor="let c of list">
+    <td>{{ c.name }}</td>
+    <td>{{ c.discountType === 0 ? ('%' + c.discountValue) : (c.discountValue + ' TRY') }}</td>
+    <td>{{ c.couponCode }}</td>
+    <td>{{ c.startDate | date }} — {{ c.endDate | date }}</td>
+    <td>{{ c.isRunning ? 'Yayında' : (c.isActive ? 'Planlı' : 'Pasif') }}</td>
+    <td>
+      <button class="linkish" type="button" (click)="edit(c)">Düzenle</button>
+      <button class="linkish" type="button" (click)="remove(c.id)">Sil</button>
+    </td>
+  </tr>
+</table>
+<form class="form-card" *ngIf="editing" (ngSubmit)="save()">
+  <div class="form-grid">
+    <label>Ad<input [(ngModel)]="editing.name" name="name" required></label>
+    <label>Tip
+      <select [(ngModel)]="editing.discountType" name="discountType">
+        <option [ngValue]="0">Yüzde</option>
+        <option [ngValue]="1">Tutar</option>
+      </select>
+    </label>
+    <label>Değer<input type="number" [(ngModel)]="editing.discountValue" name="discountValue"></label>
+    <label>Kupon<input [(ngModel)]="editing.couponCode" name="couponCode"></label>
+    <label>Min. tutar<input type="number" [(ngModel)]="editing.minOrderAmount" name="minOrderAmount"></label>
+    <label>Başlangıç<input type="datetime-local" [(ngModel)]="editing.startDate" name="startDate"></label>
+    <label>Bitiş<input type="datetime-local" [(ngModel)]="editing.endDate" name="endDate"></label>
+    <label class="check"><input type="checkbox" [(ngModel)]="editing.isActive" name="isActive"> Aktif</label>
+    <label class="full">Açıklama<textarea [(ngModel)]="editing.description" name="description"></textarea></label>
+  </div>
+  <button class="btn-accent" type="submit">Kaydet</button>
+</form>

@@ -1,0 +1,32 @@
+<section class="page-head">
+  <div class="container-xl">
+    <h1>Ürünlerimiz</h1>
+    <p>Endüstriyel hortum, bağlantı elemanı ve PVC çözümleri.</p>
+  </div>
+</section>
+<div class="container-xl catalog">
+  <aside class="filters">
+    <h3>Kategoriler</h3>
+    <a routerLink="/urunler" [class.active]="!category">Tümü</a>
+    <a *ngFor="let c of categories" routerLink="/urunler" [queryParams]="{category: c.slug}" [class.active]="category === c.slug">{{ c.name }}</a>
+  </aside>
+  <div>
+    <div class="product-grid" *ngIf="products.length; else empty">
+      <a class="product-card" *ngFor="let p of products" [routerLink]="['/urunler', p.slug]">
+        <div class="product-visual" [class.has-img]="p.imageUrl">
+          <img *ngIf="p.imageUrl" [src]="p.imageUrl" [alt]="p.name">
+          <span *ngIf="!p.imageUrl">{{ p.sku }}</span>
+        </div>
+        <div class="product-body">
+          <small>{{ p.sku }}</small>
+          <h3>{{ p.name }}</h3>
+          <div class="price-row">
+            <strong *ngIf="p.discountedPrice">{{ p.discountedPrice | number:'1.2-2' }} {{ p.currency }}</strong>
+            <span [class.old]="p.discountedPrice">{{ p.price | number:'1.2-2' }} {{ p.currency }}</span>
+          </div>
+        </div>
+      </a>
+    </div>
+    <ng-template #empty><p>Bu kriterlere uygun ürün bulunamadı.</p></ng-template>
+  </div>
+</div>

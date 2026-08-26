@@ -1,0 +1,74 @@
+<div class="admin-head">
+  <h1>Ürünler</h1>
+  <button class="btn-accent" type="button" (click)="startNew()">Yeni ürün</button>
+</div>
+<table class="admin-table">
+  <tr><th>SKU</th><th>Ad</th><th>Üretici</th><th>Kategori</th><th>Stok</th><th>Fiyat</th><th>Durum</th><th></th></tr>
+  <tr *ngFor="let p of products">
+    <td>{{ p.sku }}</td>
+    <td>{{ p.name }}</td>
+    <td>{{ p.manufacturer || '-' }}</td>
+    <td>{{ categoryNames(p) }}</td>
+    <td>{{ p.stock }}</td>
+    <td>{{ (p.discountedPrice || p.price) | number:'1.2-2' }}</td>
+    <td>{{ p.isActive ? 'Aktif' : 'Pasif' }}</td>
+    <td>
+      <button class="linkish" type="button" (click)="edit(p)">Düzenle</button>
+      <button class="linkish" type="button" (click)="remove(p.id)">Sil</button>
+    </td>
+  </tr>
+</table>
+
+<form class="form-card" *ngIf="editing" (ngSubmit)="save()">
+  <h3>{{ editing.id ? 'Ürün düzenle' : 'Yeni ürün' }}</h3>
+  <div class="form-grid">
+    <label>SKU<input [(ngModel)]="editing.sku" name="sku" required></label>
+    <label>Üretici<input [(ngModel)]="editing.manufacturer" name="manufacturer" placeholder="GASSO, SEL, Continental..."></label>
+    <label>Stok<input type="number" [(ngModel)]="editing.stock" name="stock"></label>
+    <label>Sıra<input type="number" [(ngModel)]="editing.sortOrder" name="sortOrder"></label>
+    <label class="check"><input type="checkbox" [(ngModel)]="editing.isActive" name="isActive"> Aktif</label>
+    <div class="full">
+      <strong>Kategoriler</strong>
+      <label class="check" *ngFor="let c of categories">
+        <input type="checkbox" [checked]="isCatSelected(c.id)" (change)="toggleCat(c.id, $event)"> {{ c.name }}
+      </label>
+    </div>
+  </div>
+  <h4>Çeviriler</h4>
+  <div *ngFor="let t of editing.translations; let i = index" class="form-grid">
+    <label>Dil<input [(ngModel)]="t.languageCode" [name]="'lang'+i"></label>
+    <label>Ad<input [(ngModel)]="t.name" [name]="'name'+i" required></label>
+    <label class="full">Kısa açıklama<input [(ngModel)]="t.shortDescription" [name]="'sd'+i"></label>
+    <label class="full">Açıklama<textarea [(ngModel)]="t.description" [name]="'d'+i"></textarea></label>
+  </div>
+  <h4>Fiyat</h4>
+  <div *ngFor="let pr of editing.prices; let i = index" class="form-grid">
+    <label>Tutar<input type="number" step="0.01" [(ngModel)]="pr.amount" [name]="'amt'+i"></label>
+    <label>Kampanya
+      <select [(ngModel)]="pr.campaignId" [name]="'camp'+i">
+        <option [ngValue]="null">Yok</option>
+        <option *ngFor="let c of campaigns" [ngValue]="c.id">{{ c.name }}</option>
+      </select>
+    </label>
+  </div>
+  <h4>Özellikler</h4>
+  <div class="form-grid">
+    <label *ngFor="let f of editing.features; let i = index">
+      {{ featureName(f.headerId) }}
+      <input [(ngModel)]="f.value" [name]="'fv'+i">
+    </label>
+  </div>
+  <div *ngIf="editing.id">
+    <h4>Görseller</h4>
+    <div class="img-row">
+      <span *ngFor="let img of editing.images">
+        <img [src]="img.filePath" alt="">
+        <button type="button" (click)="deleteImage(img.id)">Sil</button>
+      </span>
+    </div>
+    <input type="file" accept="image/png,image/jpeg,image/webp" (change)="upload($event)">
+  </div>
+  <p class="err" *ngIf="error">{{ error }}</p>
+  <button class="btn-accent" type="submit">Kaydet</button>
+  <button class="linkish" type="button" (click)="editing=null">Kapat</button>
+</form>

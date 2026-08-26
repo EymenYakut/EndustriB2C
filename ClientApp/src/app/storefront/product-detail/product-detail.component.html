@@ -1,0 +1,35 @@
+<div class="container-xl product-detail" *ngIf="product">
+  <div class="pd-visual" [class.has-img]="product.imageUrl">
+    <img *ngIf="product.imageUrl" [src]="product.imageUrl" [alt]="product.name">
+    <span *ngIf="!product.imageUrl">{{ product.sku }}</span>
+  </div>
+  <div>
+    <small class="eyebrow">{{ product.sku }} · Stok: {{ product.stock }}</small>
+    <h1>{{ product.name }}</h1>
+    <p *ngIf="product.manufacturer"><strong>Üretici:</strong> {{ product.manufacturer }}</p>
+    <p *ngIf="product.categories?.length">Kategori: <span *ngFor="let c of product.categories; let last = last">{{ c.name }}<span *ngIf="!last">, </span></span></p>
+    <p>{{ product.shortDescription }}</p>
+    <div class="price-row lg">
+      <strong>{{ unitPrice | number:'1.2-2' }} {{ product.currency }}</strong>
+      <span class="old" *ngIf="product.discountedPrice">{{ product.price | number:'1.2-2' }} {{ product.currency }}</span>
+    </div>
+    <p class="ok" *ngIf="product.campaignName">Kampanya: {{ product.campaignName }}</p>
+    <div class="qty-row">
+      <input type="number" min="1" [max]="product.stock" [(ngModel)]="qty">
+      <button class="btn-accent" type="button" (click)="add()" [disabled]="product.stock < 1">Sepete Ekle</button>
+    </div>
+    <p class="ok" *ngIf="message">{{ message }}</p>
+    <p class="err" *ngIf="error">{{ error }}</p>
+    <p class="hint">Üye olmadan sepete ekleyebilir, ödeme adımında misafir olarak sipariş verebilirsiniz.</p>
+  </div>
+</div>
+<section class="container-xl" *ngIf="product">
+  <h2>Ürün açıklaması</h2>
+  <p>{{ product.description }}</p>
+  <table class="spec" *ngIf="product.features.length">
+    <tr *ngFor="let f of product.features">
+      <th>{{ f.headerName }}</th>
+      <td>{{ f.value }} <small *ngIf="f.unit">{{ f.unit }}</small></td>
+    </tr>
+  </table>
+</section>

@@ -1,0 +1,22 @@
+<section class="page-head"><div class="container-xl"><h1>Sepetim</h1></div></section>
+<div class="container-xl cart-page" *ngIf="cart">
+  <p *ngIf="cart.isGuest" class="hint">Misafir sepeti. Üye olursanız sepetiniz hesabınıza aktarılır.</p>
+  <div *ngIf="!cart.items.length" class="empty">Sepetiniz boş. <a routerLink="/urunler">Alışverişe başla</a></div>
+  <table class="cart-table" *ngIf="cart.items.length">
+    <tr *ngFor="let i of cart.items">
+      <td>
+        <strong>{{ i.name }}</strong><br><small>{{ i.sku }}</small>
+      </td>
+      <td>{{ i.unitPrice | number:'1.2-2' }} TRY</td>
+      <td>
+        <input type="number" min="1" [max]="i.stock" [ngModel]="i.quantity" (change)="change(i.id, +$any($event.target).value)">
+      </td>
+      <td>{{ i.lineTotal | number:'1.2-2' }} TRY</td>
+      <td><button class="linkish" type="button" (click)="remove(i.id)">Kaldır</button></td>
+    </tr>
+  </table>
+  <div class="cart-sum" *ngIf="cart.items.length">
+    <p>Ara toplam: <strong>{{ cart.total | number:'1.2-2' }} TRY</strong></p>
+    <a routerLink="/odeme" class="btn-accent">Ödemeye Geç</a>
+  </div>
+</div>

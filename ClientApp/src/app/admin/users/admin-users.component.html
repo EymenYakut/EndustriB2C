@@ -1,0 +1,12 @@
+<h1>Kullanıcılar</h1>
+<table class="admin-table">
+  <tr><th>Ad</th><th>E-posta</th><th>Telefon</th><th>Tip</th><th>Durum</th><th>Kayıt</th></tr>
+  <tr *ngFor="let u of users">
+    <td>{{ u.fullName }}</td>
+    <td>{{ u.email }}</td>
+    <td>{{ u.phone }}</td>
+    <td>{{ u.userType === 0 ? 'Admin' : 'User' }}</td>
+    <td>{{ u.isActive ? 'Aktif' : 'Pasif' }}</td>
+    <td>{{ u.createdAt | date:'short' }}</td>
+  </tr>
+</table>

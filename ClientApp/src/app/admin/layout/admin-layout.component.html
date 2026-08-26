@@ -1,0 +1,29 @@
+<div class="admin-shell">
+  <aside class="admin-side">
+    <a routerLink="/admin" class="brand mini">
+      <span class="brand-mark">TF</span>
+      <span>Yönetim</span>
+    </a>
+    <nav>
+      <a routerLink="/admin" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}">Özet</a>
+      <a routerLink="/admin/urunler" routerLinkActive="active">Ürünler</a>
+      <a routerLink="/admin/kategoriler" routerLinkActive="active">Kategoriler</a>
+      <a routerLink="/admin/siparisler" routerLinkActive="active">Siparişler</a>
+      <a routerLink="/admin/musteriler" routerLinkActive="active">Müşteriler</a>
+      <a routerLink="/admin/kampanyalar" routerLinkActive="active">Kampanyalar</a>
+      <a routerLink="/admin/ozellikler" routerLinkActive="active">Ürün Özellikleri</a>
+      <a routerLink="/admin/kullanicilar" routerLinkActive="active">Kullanıcılar</a>
+      <a routerLink="/">Mağazaya dön</a>
+    </nav>
+    <button class="linkish" type="button" (click)="logout()">Çıkış</button>
+  </aside>
+  <section class="admin-main">
+    <header class="admin-top">
+      <strong>Admin Panel</strong>
+      <span *ngIf="auth.user">{{ auth.user.fullName }}</span>
+    </header>
+    <div class="admin-body">
+      <router-outlet></router-outlet>
+    </div>
+  </section>
+</div>

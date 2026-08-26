@@ -1,0 +1,35 @@
+<div class="admin-head">
+  <h1>Kategoriler</h1>
+  <button class="btn-accent" type="button" (click)="startNew()">Yeni kategori</button>
+</div>
+<table class="admin-table">
+  <tr><th></th><th>Ad</th><th>Slug</th><th>Ürün</th><th>Durum</th><th></th></tr>
+  <tr *ngFor="let c of list">
+    <td><img *ngIf="c.imageUrl" [src]="c.imageUrl" alt="" style="width:48px;height:48px;object-fit:cover;border-radius:6px"></td>
+    <td>{{ c.name }}</td>
+    <td>{{ c.slug }}</td>
+    <td>{{ c.productCount }}</td>
+    <td>{{ c.isActive ? 'Aktif' : 'Pasif' }}</td>
+    <td>
+      <button class="linkish" type="button" (click)="edit(c)">Düzenle</button>
+      <button class="linkish" type="button" (click)="remove(c.id)">Sil</button>
+    </td>
+  </tr>
+</table>
+<form class="form-card" *ngIf="editing" (ngSubmit)="save()">
+  <h3>{{ editing.id ? 'Kategori düzenle' : 'Yeni kategori' }}</h3>
+  <div class="form-grid">
+    <label>Ad<input [(ngModel)]="editing.name" name="name" required></label>
+    <label>Slug<input [(ngModel)]="editing.slug" name="slug" placeholder="otomatik"></label>
+    <label>Sıra<input type="number" [(ngModel)]="editing.sortOrder" name="sortOrder"></label>
+    <label class="check"><input type="checkbox" [(ngModel)]="editing.isActive" name="isActive"> Aktif</label>
+    <label class="full">Açıklama<textarea [(ngModel)]="editing.description" name="description"></textarea></label>
+  </div>
+  <div *ngIf="editing.id">
+    <p *ngIf="editing.imageUrl"><img [src]="editing.imageUrl" alt="" style="max-width:180px;border-radius:8px"></p>
+    <input type="file" accept="image/png,image/jpeg,image/webp" (change)="upload($event)">
+  </div>
+  <p class="err" *ngIf="error">{{ error }}</p>
+  <button class="btn-accent" type="submit">Kaydet</button>
+  <button class="linkish" type="button" (click)="editing=null">Kapat</button>
+</form>

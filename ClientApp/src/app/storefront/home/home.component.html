@@ -1,0 +1,85 @@
+<div class="container-xl" *ngIf="orderNumber" style="margin-top:16px">
+  <p class="ok">Siparişiniz alındı. Sipariş no: <strong>{{ orderNumber }}</strong></p>
+</div>
+<section class="hero">
+  <div class="container-xl hero-inner">
+    <p class="eyebrow">PVC VE KAUÇUK • HİDROLİK • KOMPOZİT</p>
+    <h1>Endüstriyel hortum ve ekipman çözümleri</h1>
+    <p class="lead">20 yılı aşkın tecrübe, 500+ ürün çeşitliliği ve Avrupa’nın köklü markalarının Türkiye distribütörlüğü.</p>
+    <div class="hero-actions">
+      <a routerLink="/urunler" class="btn-accent">Ürünleri İncele</a>
+      <a routerLink="/iletisim" class="btn-ghost">Teklif Al</a>
+    </div>
+  </div>
+</section>
+
+<section class="cat-grid container-xl">
+  <a class="cat-card" *ngFor="let c of categories" [routerLink]="'/urunler'" [queryParams]="{category: c.slug}">
+    <div class="cat-visual" *ngIf="c.imageUrl"><img [src]="c.imageUrl" [alt]="c.name"></div>
+    <span class="cat-kicker">Kategori</span>
+    <h3>{{ c.name }}</h3>
+    <p>{{ c.description }}</p>
+  </a>
+</section>
+
+<section class="why container-xl">
+  <h2>Neden Teknofleks?</h2>
+  <div class="why-grid">
+    <article>
+      <h3>Endüstriyel ürün portföyü</h3>
+      <p>GASSO, Continental, Merlett, Tecnica, Tubithor, Norres, Schauenburg, Extruflex ve Sel Hortum ürünlerinin ithalatı, üretimi ve ticareti.</p>
+    </article>
+    <article>
+      <h3>Üretim ve uygulama</h3>
+      <p>Tuzla tesislerimizde hidrolik ve kompozit hortum presleme ile paslanmaz flexible hortum kaynak işleri.</p>
+    </article>
+    <article>
+      <h3>Stok ve hızlı teslimat</h3>
+      <p>Hortum, bağlantı elemanı, PVC şerit perde ve levhalar stoklarımızda daima hazır bulundurulur.</p>
+    </article>
+  </div>
+</section>
+
+<section class="stats">
+  <div class="container-xl stats-grid">
+    <div><strong>20+</strong><span>Yıl sektörel deneyim</span></div>
+    <div><strong>500+</strong><span>Ürün çeşitliliği</span></div>
+    <div><strong>2000+</strong><span>Memnun müşteri</span></div>
+    <div><strong>25+</strong><span>Uluslararası tedarikçi</span></div>
+  </div>
+</section>
+
+<section class="container-xl" *ngIf="campaigns.length">
+  <h2>Kampanyalar</h2>
+  <div class="campaign-row">
+    <div class="campaign-card" *ngFor="let c of campaigns">
+      <h3>{{ c.name }}</h3>
+      <p>{{ c.description }}</p>
+      <span class="pill" *ngIf="c.couponCode">Kupon: {{ c.couponCode }}</span>
+    </div>
+  </div>
+</section>
+
+<section class="container-xl product-section">
+  <div class="section-head">
+    <h2>Öne çıkan ürünler</h2>
+    <a routerLink="/urunler">Tümünü gör</a>
+  </div>
+  <div class="product-grid">
+    <a class="product-card" *ngFor="let p of products" [routerLink]="['/urunler', p.slug]">
+      <div class="product-visual" [class.has-img]="p.imageUrl">
+        <img *ngIf="p.imageUrl" [src]="p.imageUrl" [alt]="p.name">
+        <span *ngIf="!p.imageUrl">{{ p.sku }}</span>
+      </div>
+      <div class="product-body">
+        <small>{{ p.sku }}</small>
+        <h3>{{ p.name }}</h3>
+        <p>{{ p.shortDescription }}</p>
+        <div class="price-row">
+          <strong *ngIf="p.discountedPrice">{{ p.discountedPrice | number:'1.2-2' }} {{ p.currency }}</strong>
+          <span [class.old]="p.discountedPrice">{{ p.price | number:'1.2-2' }} {{ p.currency }}</span>
+        </div>
+      </div>
+    </a>
+  </div>
+</section>

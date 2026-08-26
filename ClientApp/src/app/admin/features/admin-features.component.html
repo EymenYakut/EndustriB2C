@@ -1,0 +1,22 @@
+<h1>Ürün özellik başlıkları</h1>
+<p class="hint">Örn. Çap, Çalışma basıncı. Her ürün bu başlıklara kendi değerini bağlar.</p>
+<form class="form-card" (ngSubmit)="save()">
+  <div class="form-grid">
+    <label>Ad<input [(ngModel)]="model.name" name="name" required></label>
+    <label>Birim<input [(ngModel)]="model.unit" name="unit"></label>
+    <label>Sıra<input type="number" [(ngModel)]="model.sortOrder" name="sortOrder"></label>
+  </div>
+  <button class="btn-accent" type="submit">Kaydet</button>
+</form>
+<table class="admin-table">
+  <tr><th>Ad</th><th>Birim</th><th>Sıra</th><th></th></tr>
+  <tr *ngFor="let f of list">
+    <td>{{ f.name }}</td>
+    <td>{{ f.unit }}</td>
+    <td>{{ f.sortOrder }}</td>
+    <td>
+      <button class="linkish" type="button" (click)="edit(f)">Düzenle</button>
+      <button class="linkish" type="button" (click)="remove(f.id)">Sil</button>
+    </td>
+  </tr>
+</table>

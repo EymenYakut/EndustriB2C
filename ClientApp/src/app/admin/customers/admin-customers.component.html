@@ -1,0 +1,28 @@
+<h1>Müşteriler</h1>
+<table class="admin-table">
+  <tr><th>Ad</th><th>E-posta</th><th>Telefon</th><th>Durum</th><th></th></tr>
+  <tr *ngFor="let c of customers">
+    <td>{{ c.fullName }}</td>
+    <td>{{ c.email }}</td>
+    <td>{{ c.phone }}</td>
+    <td>{{ c.isActive ? 'Aktif' : 'Pasif' }}</td>
+    <td>
+      <button class="linkish" type="button" (click)="open(c.id)">İncele</button>
+      <button class="linkish" type="button" (click)="toggle(c)">{{ c.isActive ? 'Pasifleştir' : 'Aktifleştir' }}</button>
+    </td>
+  </tr>
+</table>
+<div class="form-card" *ngIf="detail">
+  <h3>{{ detail.user.fullName }}</h3>
+  <p>{{ detail.user.email }} · {{ detail.user.phone }}</p>
+  <h4>Adresler</h4>
+  <p *ngFor="let a of detail.addresses">{{ a.title }}: {{ a.addressLine }}, {{ a.district }}/{{ a.city }}</p>
+  <h4>Siparişler</h4>
+  <table class="admin-table">
+    <tr *ngFor="let o of detail.orders">
+      <td>{{ o.orderNumber }}</td>
+      <td>{{ o.total | number:'1.2-2' }}</td>
+      <td>{{ statuses[o.status] }}</td>
+    </tr>
+  </table>
+</div>

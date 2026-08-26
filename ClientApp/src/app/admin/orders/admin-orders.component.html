@@ -1,0 +1,32 @@
+<h1>Siparişler</h1>
+<table class="admin-table">
+  <tr><th>No</th><th>Müşteri</th><th>E-posta</th><th>Tutar</th><th>Durum</th><th>Tarih</th><th></th></tr>
+  <tr *ngFor="let o of orders">
+    <td>{{ o.orderNumber }}</td>
+    <td>{{ o.customerName }}</td>
+    <td>{{ o.customerEmail }}</td>
+    <td>{{ o.total | number:'1.2-2' }}</td>
+    <td>{{ statuses[o.status] }}</td>
+    <td>{{ o.createdAt | date:'short' }}</td>
+    <td><button class="linkish" type="button" (click)="open(o.id)">İncele</button></td>
+  </tr>
+</table>
+<div class="form-card" *ngIf="selected">
+  <h3>{{ selected.orderNumber }}</h3>
+  <p>{{ selected.customerName }} · {{ selected.customerEmail }} · {{ selected.customerPhone }}</p>
+  <p>{{ selected.shippingFullName }} — {{ selected.shippingAddressLine }}, {{ selected.shippingDistrict }}/{{ selected.shippingCity }}</p>
+  <table class="admin-table">
+    <tr *ngFor="let l of selected.lines">
+      <td>{{ l.productSku }}</td>
+      <td>{{ l.productName }}</td>
+      <td>{{ l.quantity }}</td>
+      <td>{{ l.lineTotal | number:'1.2-2' }}</td>
+    </tr>
+  </table>
+  <p>Ara: {{ selected.subTotal | number:'1.2-2' }} · İndirim: {{ selected.discountAmount | number:'1.2-2' }} · Toplam: <strong>{{ selected.total | number:'1.2-2' }} TRY</strong></p>
+  <label>Durum
+    <select [ngModel]="selected.status" (ngModelChange)="setStatus($event)">
+      <option *ngFor="let s of statusKeys" [ngValue]="s">{{ statuses[s] }}</option>
+    </select>
+  </label>
+</div>

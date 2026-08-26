@@ -1,0 +1,30 @@
+<section class="page-head"><div class="container-xl"><h1>Sipariş</h1></div></section>
+<div class="container-xl checkout" *ngIf="cart">
+  <form class="form-card" (ngSubmit)="submit()" *ngIf="cart.items.length; else empty">
+    <p class="hint" *ngIf="!auth.isLoggedIn">Misafir olarak devam ediyorsunuz. İsterseniz <a routerLink="/kayit">üye olun</a> — sepetiniz korunur.</p>
+    <div class="form-grid">
+      <label>Ad Soyad<input [(ngModel)]="model.customerName" name="customerName" required></label>
+      <label>E-posta<input [(ngModel)]="model.customerEmail" name="customerEmail" type="email" required></label>
+      <label>Telefon<input [(ngModel)]="model.customerPhone" name="customerPhone" required></label>
+    </div>
+    <h3>Teslimat adresi</h3>
+    <div class="addr-pills" *ngIf="addresses.length">
+      <button type="button" *ngFor="let a of addresses" (click)="applyAddress(a)">{{ a.title }}</button>
+    </div>
+    <div class="form-grid">
+      <label>Teslim alacak<input [(ngModel)]="model.shippingFullName" name="shippingFullName" required></label>
+      <label>Telefon<input [(ngModel)]="model.shippingPhone" name="shippingPhone" required></label>
+      <label>İl<input [(ngModel)]="model.shippingCity" name="shippingCity" required></label>
+      <label>İlçe<input [(ngModel)]="model.shippingDistrict" name="shippingDistrict" required></label>
+      <label class="full">Adres<textarea [(ngModel)]="model.shippingAddressLine" name="shippingAddressLine" required></textarea></label>
+      <label>Posta kodu<input [(ngModel)]="model.shippingPostalCode" name="shippingPostalCode"></label>
+      <label>Kupon<input [(ngModel)]="model.couponCode" name="couponCode" placeholder="ENDUSTRI15"></label>
+    </div>
+    <p class="err" *ngIf="error">{{ error }}</p>
+    <div class="cart-sum">
+      <p>Toplam: <strong>{{ cart.total | number:'1.2-2' }} TRY</strong></p>
+      <button class="btn-accent" type="submit">Siparişi Tamamla</button>
+    </div>
+  </form>
+  <ng-template #empty>Sepet boş.</ng-template>
+</div>

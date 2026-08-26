@@ -1,0 +1,11 @@
+<section class="page-head"><div class="container-xl"><h1>Kayıt Ol</h1></div></section>
+<form class="form-card narrow" (ngSubmit)="submit()">
+  <label>Ad<input [(ngModel)]="model.firstName" name="firstName" required></label>
+  <label>Soyad<input [(ngModel)]="model.lastName" name="lastName" required></label>
+  <label>E-posta<input [(ngModel)]="model.email" name="email" type="email" required></label>
+  <label>Telefon<input [(ngModel)]="model.phone" name="phone" required></label>
+  <label>Şifre<input [(ngModel)]="model.password" name="password" type="password" required minlength="8"></label>
+  <p class="hint">En az 8 karakter, büyük/küçük harf ve rakam.</p>
+  <p class="err" *ngIf="error">{{ error }}</p>
+  <button class="btn-accent" type="submit">Hesap Oluştur</button>
+</form>
