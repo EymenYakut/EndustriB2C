@@ -26,6 +26,8 @@ builder.Services.AddSingleton(jwtOptions);
 builder.Services.AddSingleton<JwtTokenService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUser, CurrentUser>();
+builder.Services.Configure<OrderAlertOptions>(builder.Configuration.GetSection("OrderAlert"));
+builder.Services.AddSingleton<OrderAlertService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<CartService>();
 builder.Services.AddScoped<OrderService>();

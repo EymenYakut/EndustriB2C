@@ -1,38 +1,124 @@
-<section class="page-head"><div class="container-xl"><h1>Hesabım</h1></div></section>
-<div class="container-xl account-grid">
-  <div class="form-card">
-    <h3>Profil</h3>
-    <p *ngIf="auth.user"><strong>{{ auth.user.fullName }}</strong><br>{{ auth.user.email }}<br>{{ auth.user.phone }}</p>
+<section class="page-head">
+  <div class="container-xl">
+    <p class="eyebrow">HESABIM</p>
+    <h1>Hoş geldiniz{{ auth.user?.firstName ? ', ' + auth.user?.firstName : '' }}</h1>
+    <p>Siparişlerinizi ve teslimat adreslerinizi buradan yönetin.</p>
   </div>
-  <div class="form-card">
-    <h3>Adreslerim</h3>
-    <div *ngFor="let a of addresses" class="addr-item">
-      <div><strong>{{ a.title }}</strong> — {{ a.fullName }}, {{ a.district }}/{{ a.city }}<br>{{ a.addressLine }}</div>
-      <button class="linkish" type="button" (click)="removeAddr(a.id)">Sil</button>
+</section>
+
+<div class="container-xl acc-page" *ngIf="auth.user as user">
+  <aside class="acc-profile">
+    <div class="acc-avatar">{{ (user.firstName || 'U').charAt(0) }}{{ (user.lastName || '').charAt(0) }}</div>
+    <div>
+      <strong>{{ user.fullName }}</strong>
+      <p>{{ user.email }}</p>
+      <p>{{ user.phone }}</p>
     </div>
-    <form (ngSubmit)="saveAddr()">
-      <div class="form-grid">
-        <label>Başlık<input [(ngModel)]="addr.title" name="title" required></label>
-        <label>Ad Soyad<input [(ngModel)]="addr.fullName" name="fullName" required></label>
-        <label>Telefon<input [(ngModel)]="addr.phone" name="phone" required></label>
-        <label>İl<input [(ngModel)]="addr.city" name="city" required></label>
-        <label>İlçe<input [(ngModel)]="addr.district" name="district" required></label>
-        <label class="full">Adres<textarea [(ngModel)]="addr.addressLine" name="addressLine" required></textarea></label>
+    <a routerLink="/urunler" class="btn-accent acc-shop">Alışverişe devam et</a>
+  </aside>
+
+  <div class="acc-main">
+    <section class="acc-card">
+      <div class="acc-card-head">
+        <h2>Siparişlerim</h2>
+        <span>{{ orders.length }} kayıt</span>
       </div>
-      <button class="btn-accent" type="submit">Adres Ekle</button>
-    </form>
+      <p class="err" *ngIf="error">{{ error }}</p>
+      <div class="acc-empty" *ngIf="!orders.length">
+        <p>Henüz siparişiniz yok.</p>
+        <a routerLink="/urunler" class="btn-accent">Ürünlere göz at</a>
+      </div>
+      <div class="order-list" *ngIf="orders.length">
+        <button class="order-row" type="button" *ngFor="let o of orders" (click)="openOrder(o)">
+          <div>
+            <strong>{{ o.orderNumber }}</strong>
+            <small>{{ o.createdAt | date:'dd.MM.yyyy HH:mm' }} · {{ o.itemCount }} ürün</small>
+          </div>
+          <div class="order-row-meta">
+            <span class="status-pill" [ngClass]="statusClass(o.status)">{{ statuses[o.status] }}</span>
+            <strong>{{ o.total | number:'1.2-2' }} TRY</strong>
+            <span class="order-more">Detay</span>
+          </div>
+        </button>
+      </div>
+    </section>
+
+    <section class="acc-card">
+      <div class="acc-card-head">
+        <h2>Adreslerim</h2>
+        <span>{{ addresses.length }} adres</span>
+      </div>
+      <div class="addr-grid" *ngIf="addresses.length">
+        <article class="addr-card" *ngFor="let a of addresses">
+          <div>
+            <strong>{{ a.title }}</strong>
+            <span class="addr-default" *ngIf="a.isDefault">Varsayılan</span>
+            <p>{{ a.fullName }} · {{ a.phone }}</p>
+            <p>{{ a.addressLine }}</p>
+            <p>{{ a.district }} / {{ a.city }} <ng-container *ngIf="a.postalCode">· {{ a.postalCode }}</ng-container></p>
+          </div>
+          <button class="linkish" type="button" (click)="removeAddr(a.id)">Sil</button>
+        </article>
+      </div>
+      <form class="addr-form" (ngSubmit)="saveAddr()">
+        <h3>Yeni adres ekle</h3>
+        <div class="form-grid">
+          <label>Başlık<input [(ngModel)]="addr.title" name="title" required></label>
+          <label>Ad Soyad<input [(ngModel)]="addr.fullName" name="fullName" required></label>
+          <label>Telefon<input [(ngModel)]="addr.phone" name="phone" required></label>
+          <label>İl<input [(ngModel)]="addr.city" name="city" required></label>
+          <label>İlçe<input [(ngModel)]="addr.district" name="district" required></label>
+          <label>Posta kodu<input [(ngModel)]="addr.postalCode" name="postalCode"></label>
+          <label class="full">Adres<textarea [(ngModel)]="addr.addressLine" name="addressLine" required></textarea></label>
+        </div>
+        <button class="btn-accent" type="submit">Adres Ekle</button>
+      </form>
+    </section>
   </div>
-  <div class="form-card full">
-    <h3>Siparişlerim</h3>
-    <table class="admin-table" *ngIf="orders.length; else none">
-      <tr><th>No</th><th>Tarih</th><th>Tutar</th><th>Durum</th></tr>
-      <tr *ngFor="let o of orders">
-        <td>{{ o.orderNumber }}</td>
-        <td>{{ o.createdAt | date:'short' }}</td>
-        <td>{{ o.total | number:'1.2-2' }} TRY</td>
-        <td>{{ statuses[o.status] }}</td>
-      </tr>
-    </table>
-    <ng-template #none><p>Henüz siparişiniz yok.</p></ng-template>
+</div>
+
+<div class="order-modal-backdrop" *ngIf="detail || detailLoading" (click)="closeOrder()">
+  <div class="order-modal" role="dialog" aria-modal="true" [attr.aria-label]="detail?.orderNumber || 'Sipariş detayı'" (click)="$event.stopPropagation()">
+    <button class="order-modal-close" type="button" (click)="closeOrder()" aria-label="Kapat">×</button>
+    <div class="acc-empty" *ngIf="detailLoading && !detail">Yükleniyor…</div>
+    <ng-container *ngIf="detail">
+      <p class="eyebrow">SİPARİŞ DETAYI</p>
+      <div class="order-modal-top">
+        <div>
+          <h2>{{ detail.orderNumber }}</h2>
+          <p>{{ detail.createdAt | date:'dd.MM.yyyy HH:mm' }}</p>
+        </div>
+        <span class="status-pill lg" [ngClass]="statusClass(detail.status)">{{ statuses[detail.status] }}</span>
+      </div>
+
+      <div class="order-modal-grid">
+        <section>
+          <h3>Ürünler</h3>
+          <table class="order-lines">
+            <tr *ngFor="let line of detail.lines">
+              <td>
+                <strong>{{ line.productName }}</strong>
+                <small>SKU {{ line.productSku }} · {{ line.quantity }} adet</small>
+              </td>
+              <td>{{ line.lineTotal | number:'1.2-2' }} TRY</td>
+            </tr>
+          </table>
+        </section>
+        <section>
+          <h3>Gönderim</h3>
+          <p><strong>{{ detail.shippingFullName }}</strong><br>{{ detail.shippingPhone }}</p>
+          <p>{{ detail.shippingAddressLine }}<br>{{ detail.shippingDistrict }} / {{ detail.shippingCity }}
+            <ng-container *ngIf="detail.shippingPostalCode"><br>PK {{ detail.shippingPostalCode }}</ng-container>
+          </p>
+          <p *ngIf="detail.notes"><strong>Not:</strong> {{ detail.notes }}</p>
+        </section>
+      </div>
+
+      <div class="order-totals">
+        <div><span>Ara toplam</span><span>{{ detail.subTotal | number:'1.2-2' }} TRY</span></div>
+        <div *ngIf="detail.discountAmount"><span>İndirim{{ detail.campaignName ? ' · ' + detail.campaignName : '' }}</span><span>−{{ detail.discountAmount | number:'1.2-2' }} TRY</span></div>
+        <div class="grand"><span>Toplam</span><strong>{{ detail.total | number:'1.2-2' }} TRY</strong></div>
+      </div>
+    </ng-container>
   </div>
 </div>

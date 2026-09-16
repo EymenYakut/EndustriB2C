@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { AdminApiService } from '../../core/services/admin-api.service';
-import { CampaignDto, CategoryDto, FeatureHeaderDto, ProductDetailDto } from '../../core/models/models';
+import { CategoryDto, FeatureHeaderDto, ProductDetailDto } from '../../core/models/models';
 
 @Component({
   selector: 'app-admin-products',
@@ -9,7 +9,6 @@ import { CampaignDto, CategoryDto, FeatureHeaderDto, ProductDetailDto } from '..
 export class AdminProductsComponent implements OnInit {
   products: ProductDetailDto[] = [];
   features: FeatureHeaderDto[] = [];
-  campaigns: CampaignDto[] = [];
   categories: CategoryDto[] = [];
   editing: any = null;
   error = '';
@@ -19,7 +18,6 @@ export class AdminProductsComponent implements OnInit {
   ngOnInit(): void {
     this.reload();
     this.admin.features().subscribe(f => this.features = f);
-    this.admin.campaigns().subscribe(c => this.campaigns = c);
     this.admin.categories().subscribe(c => this.categories = c.filter(x => x.isActive));
   }
 
@@ -29,6 +27,14 @@ export class AdminProductsComponent implements OnInit {
 
   categoryNames(p: ProductDetailDto): string {
     return (p.categories || []).map(c => c.name).join(', ') || p.category || '-';
+  }
+
+  get mainCategories(): CategoryDto[] {
+    return this.categories.filter(c => c.isMainCategory);
+  }
+
+  childrenOf(main: CategoryDto): CategoryDto[] {
+    return this.categories.filter(c => !c.isMainCategory && c.mainCategoryId === main.id);
   }
 
   startNew(): void {
@@ -43,7 +49,7 @@ export class AdminProductsComponent implements OnInit {
         { languageCode: 'tr', name: '', shortDescription: '', description: '', slug: '' },
         { languageCode: 'en', name: '', shortDescription: '', description: '', slug: '' }
       ],
-      prices: [{ amount: 0, currency: 'TRY', campaignId: null, isCurrent: true }],
+      prices: [],
       features: this.features.map(f => ({ headerId: f.id, value: '' }))
     };
   }
@@ -58,7 +64,7 @@ export class AdminProductsComponent implements OnInit {
       isActive: p.isActive,
       sortOrder: 0,
       translations: p.translations.length ? p.translations : [{ languageCode: 'tr', name: p.name, slug: p.slug }],
-      prices: p.prices.length ? p.prices : [{ amount: p.price, currency: 'TRY', isCurrent: true }],
+      prices: [],
       features: this.features.map(f => {
         const existing = p.features.find(x => x.headerId === f.id);
         return { headerId: f.id, value: existing?.value || '' };

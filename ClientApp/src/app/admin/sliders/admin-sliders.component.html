@@ -1,0 +1,43 @@
+<div class="admin-head">
+  <h1>Ana sayfa slider</h1>
+  <button class="btn-accent" type="button" (click)="startNew()">Yeni slayt</button>
+</div>
+<table class="admin-table">
+  <tr><th></th><th>Başlık</th><th>Buton</th><th>Sıra</th><th>Durum</th><th></th></tr>
+  <tr *ngFor="let s of list">
+    <td><img *ngIf="s.imageUrl" [src]="s.imageUrl" alt="" style="width:72px;height:40px;object-fit:cover"></td>
+    <td>{{ s.title }}</td>
+    <td>{{ s.buttonText || '-' }}</td>
+    <td>{{ s.sortOrder }}</td>
+    <td>{{ s.isActive ? 'Aktif' : 'Pasif' }}</td>
+    <td>
+      <button class="linkish" type="button" (click)="edit(s)">Düzenle</button>
+      <button class="linkish" type="button" (click)="remove(s.id)">Sil</button>
+    </td>
+  </tr>
+</table>
+
+<div class="admin-modal-backdrop" *ngIf="editing" (click)="editing=null">
+  <form class="admin-modal" (click)="$event.stopPropagation()" (ngSubmit)="save()">
+    <button class="admin-modal-close" type="button" (click)="editing=null" aria-label="Kapat">×</button>
+    <h3>{{ editing.id ? 'Slayt düzenle' : 'Yeni slayt' }}</h3>
+    <div class="form-grid">
+      <label>Başlık<input [(ngModel)]="editing.title" name="title" required></label>
+      <label>Sıra<input type="number" [(ngModel)]="editing.sortOrder" name="sortOrder"></label>
+      <label class="full">Alt yazı<textarea [(ngModel)]="editing.subtitle" name="subtitle"></textarea></label>
+      <label>Buton yazısı<input [(ngModel)]="editing.buttonText" name="buttonText"></label>
+      <label>Buton linki<input [(ngModel)]="editing.buttonUrl" name="buttonUrl" placeholder="/urunler"></label>
+      <label class="check"><input type="checkbox" [(ngModel)]="editing.isActive" name="isActive"> Aktif</label>
+    </div>
+    <div *ngIf="editing.id">
+      <p *ngIf="editing.imageUrl"><img [src]="editing.imageUrl" alt="" style="max-width:320px"></p>
+      <input type="file" accept="image/png,image/jpeg,image/webp" (change)="upload($event)">
+      <p class="hint">Önce kaydedin, sonra ürün fotoğrafı yükleyin. Açık zemin, en az 1000px genişlik.</p>
+    </div>
+    <p class="err" *ngIf="error">{{ error }}</p>
+    <div class="admin-modal-actions">
+      <button class="btn-accent" type="submit">Kaydet</button>
+      <button class="linkish" type="button" (click)="editing=null">Vazgeç</button>
+    </div>
+  </form>
+</div>

@@ -1,5 +1,6 @@
 using EndustriB2C.Data;
 using EndustriB2C.DTOs;
+using EndustriB2C.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -12,10 +13,12 @@ namespace EndustriB2C.Controllers.Admin;
 public class AdminOrdersController : ControllerBase
 {
     private readonly AppDbContext _db;
+    private readonly OrderService _orders;
 
-    public AdminOrdersController(AppDbContext db)
+    public AdminOrdersController(AppDbContext db, OrderService orders)
     {
         _db = db;
+        _orders = orders;
     }
 
     [HttpGet]
@@ -50,5 +53,20 @@ public class AdminOrdersController : ControllerBase
         order.UpdatedAt = DateTimeOffset.UtcNow;
         await _db.SaveChangesAsync();
         return Ok(order.ToDetailDto());
+    }
+
+    [HttpPost]
+    public async Task<ActionResult<OrderDetailDto>> Create([FromBody] AdminOrderCreateRequest request)
+    {
+        if (!ModelState.IsValid) return ValidationProblem(ModelState);
+        try
+        {
+            var order = await _orders.CreateAdminAsync(request);
+            return Ok(order);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 }

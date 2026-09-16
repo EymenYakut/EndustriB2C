@@ -20,17 +20,9 @@ public class AuthController : ControllerBase
 
     [HttpPost("register")]
     [AllowAnonymous]
-    public async Task<ActionResult<AuthResponse>> Register([FromBody] RegisterRequest request)
+    public IActionResult Register()
     {
-        if (!ModelState.IsValid) return ValidationProblem(ModelState);
-        try
-        {
-            return Ok(await _auth.RegisterAsync(request, HttpContext));
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
+        return NotFound(new { message = "Mağazada üyelik yoktur." });
     }
 
     [HttpPost("login")]

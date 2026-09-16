@@ -8,7 +8,8 @@ const PROXY_CONFIG = [
     context: [
       "/api",
       "/swagger",
-      "/uploads"
+      "/uploads",
+      "/img"
     ],
     proxyTimeout: 10000,
     target: target,

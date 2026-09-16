@@ -19,6 +19,9 @@ public class FileStorageService
     public async Task<string> SaveCategoryImageAsync(IFormFile file) =>
         await SaveImageAsync(file, "categories");
 
+    public async Task<string> SaveSliderImageAsync(IFormFile file) =>
+        await SaveImageAsync(file, "sliders");
+
     private async Task<string> SaveImageAsync(IFormFile file, string folderName)
     {
         if (file.Length is <= 0 or > 5 * 1024 * 1024)

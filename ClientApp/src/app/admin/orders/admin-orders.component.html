@@ -1,4 +1,7 @@
-<h1>Siparişler</h1>
+<div class="admin-head">
+  <h1>Siparişler</h1>
+  <button class="btn-accent" type="button" (click)="startNew()">Yeni sipariş</button>
+</div>
 <table class="admin-table">
   <tr><th>No</th><th>Müşteri</th><th>E-posta</th><th>Tutar</th><th>Durum</th><th>Tarih</th><th></th></tr>
   <tr *ngFor="let o of orders">
@@ -11,22 +14,81 @@
     <td><button class="linkish" type="button" (click)="open(o.id)">İncele</button></td>
   </tr>
 </table>
-<div class="form-card" *ngIf="selected">
-  <h3>{{ selected.orderNumber }}</h3>
-  <p>{{ selected.customerName }} · {{ selected.customerEmail }} · {{ selected.customerPhone }}</p>
-  <p>{{ selected.shippingFullName }} — {{ selected.shippingAddressLine }}, {{ selected.shippingDistrict }}/{{ selected.shippingCity }}</p>
-  <table class="admin-table">
-    <tr *ngFor="let l of selected.lines">
-      <td>{{ l.productSku }}</td>
-      <td>{{ l.productName }}</td>
-      <td>{{ l.quantity }}</td>
-      <td>{{ l.lineTotal | number:'1.2-2' }}</td>
-    </tr>
-  </table>
-  <p>Ara: {{ selected.subTotal | number:'1.2-2' }} · İndirim: {{ selected.discountAmount | number:'1.2-2' }} · Toplam: <strong>{{ selected.total | number:'1.2-2' }} TRY</strong></p>
-  <label>Durum
-    <select [ngModel]="selected.status" (ngModelChange)="setStatus($event)">
-      <option *ngFor="let s of statusKeys" [ngValue]="s">{{ statuses[s] }}</option>
-    </select>
-  </label>
+
+<div class="admin-modal-backdrop" *ngIf="creating && form" (click)="creating=false">
+  <form class="admin-modal" (click)="$event.stopPropagation()" (ngSubmit)="save()">
+    <button class="admin-modal-close" type="button" (click)="creating=false" aria-label="Kapat">×</button>
+    <h3>Yeni sipariş</h3>
+
+    <h4>Müşteri</h4>
+    <div class="form-grid">
+      <label>Ad Soyad<input [(ngModel)]="form.customerName" name="customerName" required></label>
+      <label>E-posta<input [(ngModel)]="form.customerEmail" name="customerEmail" type="email" required></label>
+      <label>Telefon<input [(ngModel)]="form.customerPhone" name="customerPhone" required></label>
+    </div>
+
+    <h4>Teslimat</h4>
+    <label class="check">
+      <input type="checkbox" [(ngModel)]="sameAsCustomer" name="sameAsCustomer"> Teslimat bilgisi müşteri ile aynı
+    </label>
+    <div class="form-grid" *ngIf="!sameAsCustomer">
+      <label>Teslim alacak<input [(ngModel)]="form.shippingFullName" name="shippingFullName" required></label>
+      <label>Telefon<input [(ngModel)]="form.shippingPhone" name="shippingPhone" required></label>
+    </div>
+    <div class="form-grid">
+      <label>İl<input [(ngModel)]="form.shippingCity" name="shippingCity" required></label>
+      <label>İlçe<input [(ngModel)]="form.shippingDistrict" name="shippingDistrict" required></label>
+      <label class="full">Adres<textarea [(ngModel)]="form.shippingAddressLine" name="shippingAddressLine" required></textarea></label>
+      <label>Posta kodu<input [(ngModel)]="form.shippingPostalCode" name="shippingPostalCode"></label>
+      <label>Kupon<input [(ngModel)]="form.couponCode" name="couponCode"></label>
+      <label class="full">Not<textarea [(ngModel)]="form.notes" name="notes"></textarea></label>
+    </div>
+
+    <h4>Ürünler</h4>
+    <div class="order-line-row" *ngFor="let line of form.lines; let i = index">
+      <label class="full">Ürün
+        <select [(ngModel)]="line.productId" [name]="'pid'+i" required>
+          <option [ngValue]="null">Seçin</option>
+          <option *ngFor="let p of products" [ngValue]="p.id">{{ productLabel(p) }}</option>
+        </select>
+      </label>
+      <label>Adet
+        <input type="number" min="1" [(ngModel)]="line.quantity" [name]="'qty'+i" required>
+      </label>
+      <button class="linkish" type="button" (click)="removeLine(i)" [disabled]="form.lines.length === 1">Kaldır</button>
+    </div>
+    <button class="linkish" type="button" (click)="addLine()">+ Ürün ekle</button>
+
+    <p class="err" *ngIf="error">{{ error }}</p>
+    <div class="admin-modal-actions">
+      <button class="btn-accent" type="submit" [disabled]="saving">{{ saving ? 'Kaydediliyor…' : 'Siparişi oluştur' }}</button>
+      <button class="linkish" type="button" (click)="creating=false">Vazgeç</button>
+    </div>
+  </form>
+</div>
+
+<div class="admin-modal-backdrop" *ngIf="selected" (click)="selected=undefined">
+  <div class="admin-modal" (click)="$event.stopPropagation()">
+    <button class="admin-modal-close" type="button" (click)="selected=undefined" aria-label="Kapat">×</button>
+    <h3>{{ selected.orderNumber }}</h3>
+    <p>{{ selected.customerName }} · {{ selected.customerEmail }} · {{ selected.customerPhone }}</p>
+    <p>{{ selected.shippingFullName }} — {{ selected.shippingAddressLine }}, {{ selected.shippingDistrict }}/{{ selected.shippingCity }}</p>
+    <table class="admin-table">
+      <tr *ngFor="let l of selected.lines">
+        <td>{{ l.productSku }}</td>
+        <td>{{ l.productName }}</td>
+        <td>{{ l.quantity }}</td>
+        <td>{{ l.lineTotal | number:'1.2-2' }}</td>
+      </tr>
+    </table>
+    <p>Ara: {{ selected.subTotal | number:'1.2-2' }} · İndirim: {{ selected.discountAmount | number:'1.2-2' }} · Toplam: <strong>{{ selected.total | number:'1.2-2' }} TRY</strong></p>
+    <label>Durum
+      <select [ngModel]="selected.status" (ngModelChange)="setStatus($event)">
+        <option *ngFor="let s of statusKeys" [ngValue]="s">{{ statuses[s] }}</option>
+      </select>
+    </label>
+    <div class="admin-modal-actions">
+      <button class="linkish" type="button" (click)="selected=undefined">Kapat</button>
+    </div>
+  </div>
 </div>

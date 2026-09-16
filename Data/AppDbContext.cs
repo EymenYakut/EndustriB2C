@@ -22,6 +22,7 @@ public class AppDbContext : DbContext
     public DbSet<ProductFeaturesHeader> ProductFeaturesHeaders => Set<ProductFeaturesHeader>();
     public DbSet<ProductFeaturesDetail> ProductFeaturesDetails => Set<ProductFeaturesDetail>();
     public DbSet<Campaign> Campaigns => Set<Campaign>();
+    public DbSet<HomeSlider> HomeSliders => Set<HomeSlider>();
     public DbSet<OrderHeader> OrderHeaders => Set<OrderHeader>();
     public DbSet<OrderDetail> OrderDetails => Set<OrderDetail>();
 
@@ -82,10 +83,15 @@ public class AppDbContext : DbContext
         {
             e.ToTable("Categories");
             e.HasIndex(x => x.Slug).IsUnique();
+            e.HasIndex(x => x.MainCategoryId);
             e.Property(x => x.Name).HasMaxLength(160).IsRequired();
             e.Property(x => x.Slug).HasMaxLength(160).IsRequired();
             e.Property(x => x.Description).HasMaxLength(1000);
             e.Property(x => x.ImageUrl).HasMaxLength(500);
+            e.HasOne(x => x.MainCategory)
+                .WithMany(x => x.SubCategories)
+                .HasForeignKey(x => x.MainCategoryId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<ProductCategory>(e =>
@@ -150,6 +156,16 @@ public class AppDbContext : DbContext
             e.Property(x => x.MinOrderAmount).HasColumnType("decimal(18,2)");
             e.Property(x => x.CouponCode).HasMaxLength(40);
             e.HasIndex(x => x.CouponCode).IsUnique().HasFilter("[CouponCode] IS NOT NULL");
+            e.Property(x => x.ImageUrl).HasMaxLength(500);
+        });
+
+        modelBuilder.Entity<HomeSlider>(e =>
+        {
+            e.ToTable("HomeSliders");
+            e.Property(x => x.Title).HasMaxLength(160).IsRequired();
+            e.Property(x => x.Subtitle).HasMaxLength(400);
+            e.Property(x => x.ButtonText).HasMaxLength(80);
+            e.Property(x => x.ButtonUrl).HasMaxLength(300);
             e.Property(x => x.ImageUrl).HasMaxLength(500);
         });
 

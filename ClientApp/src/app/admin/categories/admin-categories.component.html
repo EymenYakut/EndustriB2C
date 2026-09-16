@@ -3,10 +3,12 @@
   <button class="btn-accent" type="button" (click)="startNew()">Yeni kategori</button>
 </div>
 <table class="admin-table">
-  <tr><th></th><th>Ad</th><th>Slug</th><th>Ürün</th><th>Durum</th><th></th></tr>
+  <tr><th></th><th>Ad</th><th>Tip</th><th>Ana kategori</th><th>Slug</th><th>Ürün</th><th>Durum</th><th></th></tr>
   <tr *ngFor="let c of list">
-    <td><img *ngIf="c.imageUrl" [src]="c.imageUrl" alt="" style="width:48px;height:48px;object-fit:cover;border-radius:6px"></td>
+    <td><img *ngIf="c.imageUrl" [src]="c.imageUrl" alt="" style="width:48px;height:48px;object-fit:cover"></td>
     <td>{{ c.name }}</td>
+    <td>{{ c.isMainCategory ? 'Ana' : 'Alt' }}</td>
+    <td>{{ c.mainCategoryName || '-' }}</td>
     <td>{{ c.slug }}</td>
     <td>{{ c.productCount }}</td>
     <td>{{ c.isActive ? 'Aktif' : 'Pasif' }}</td>
@@ -16,20 +18,33 @@
     </td>
   </tr>
 </table>
-<form class="form-card" *ngIf="editing" (ngSubmit)="save()">
-  <h3>{{ editing.id ? 'Kategori düzenle' : 'Yeni kategori' }}</h3>
-  <div class="form-grid">
-    <label>Ad<input [(ngModel)]="editing.name" name="name" required></label>
-    <label>Slug<input [(ngModel)]="editing.slug" name="slug" placeholder="otomatik"></label>
-    <label>Sıra<input type="number" [(ngModel)]="editing.sortOrder" name="sortOrder"></label>
-    <label class="check"><input type="checkbox" [(ngModel)]="editing.isActive" name="isActive"> Aktif</label>
-    <label class="full">Açıklama<textarea [(ngModel)]="editing.description" name="description"></textarea></label>
-  </div>
-  <div *ngIf="editing.id">
-    <p *ngIf="editing.imageUrl"><img [src]="editing.imageUrl" alt="" style="max-width:180px;border-radius:8px"></p>
-    <input type="file" accept="image/png,image/jpeg,image/webp" (change)="upload($event)">
-  </div>
-  <p class="err" *ngIf="error">{{ error }}</p>
-  <button class="btn-accent" type="submit">Kaydet</button>
-  <button class="linkish" type="button" (click)="editing=null">Kapat</button>
-</form>
+
+<div class="admin-modal-backdrop" *ngIf="editing" (click)="editing=null">
+  <form class="admin-modal" (click)="$event.stopPropagation()" (ngSubmit)="save()">
+    <button class="admin-modal-close" type="button" (click)="editing=null" aria-label="Kapat">×</button>
+    <h3>{{ editing.id ? 'Kategori düzenle' : 'Yeni kategori' }}</h3>
+    <div class="form-grid">
+      <label>Ad<input [(ngModel)]="editing.name" name="name" required></label>
+      <label>Slug<input [(ngModel)]="editing.slug" name="slug" placeholder="otomatik"></label>
+      <label>Sıra<input type="number" [(ngModel)]="editing.sortOrder" name="sortOrder"></label>
+      <label class="check"><input type="checkbox" [(ngModel)]="editing.isActive" name="isActive"> Aktif</label>
+      <label class="check"><input type="checkbox" [(ngModel)]="editing.isMainCategory" name="isMainCategory" (ngModelChange)="onTypeChange()"> Ana kategori</label>
+      <label *ngIf="!editing.isMainCategory">Ana kategori
+        <select [(ngModel)]="editing.mainCategoryId" name="mainCategoryId" required>
+          <option [ngValue]="null">Seçin</option>
+          <option *ngFor="let m of mainOptions" [ngValue]="m.id">{{ m.name }}</option>
+        </select>
+      </label>
+      <label class="full">Açıklama<textarea [(ngModel)]="editing.description" name="description"></textarea></label>
+    </div>
+    <div *ngIf="editing.id">
+      <p *ngIf="editing.imageUrl"><img [src]="editing.imageUrl" alt="" style="max-width:180px"></p>
+      <input type="file" accept="image/png,image/jpeg,image/webp" (change)="upload($event)">
+    </div>
+    <p class="err" *ngIf="error">{{ error }}</p>
+    <div class="admin-modal-actions">
+      <button class="btn-accent" type="submit">Kaydet</button>
+      <button class="linkish" type="button" (click)="editing=null">Vazgeç</button>
+    </div>
+  </form>
+</div>

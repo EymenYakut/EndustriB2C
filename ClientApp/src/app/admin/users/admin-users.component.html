@@ -1,6 +1,8 @@
-<h1>Kullanıcılar</h1>
+<div class="admin-head">
+  <h1>Kullanıcılar</h1>
+</div>
 <table class="admin-table">
-  <tr><th>Ad</th><th>E-posta</th><th>Telefon</th><th>Tip</th><th>Durum</th><th>Kayıt</th></tr>
+  <tr><th>Ad</th><th>E-posta</th><th>Telefon</th><th>Tip</th><th>Durum</th><th>Kayıt</th><th></th></tr>
   <tr *ngFor="let u of users">
     <td>{{ u.fullName }}</td>
     <td>{{ u.email }}</td>
@@ -8,5 +10,21 @@
     <td>{{ u.userType === 0 ? 'Admin' : 'User' }}</td>
     <td>{{ u.isActive ? 'Aktif' : 'Pasif' }}</td>
     <td>{{ u.createdAt | date:'short' }}</td>
+    <td><button class="linkish" type="button" (click)="open(u)">İncele</button></td>
   </tr>
 </table>
+
+<div class="admin-modal-backdrop" *ngIf="selected" (click)="selected=undefined">
+  <div class="admin-modal narrow" (click)="$event.stopPropagation()">
+    <button class="admin-modal-close" type="button" (click)="selected=undefined" aria-label="Kapat">×</button>
+    <h3>{{ selected.fullName }}</h3>
+    <p>{{ selected.email }}</p>
+    <p>{{ selected.phone }}</p>
+    <p>Tip: {{ selected.userType === 0 ? 'Admin' : 'User' }}</p>
+    <p>Durum: {{ selected.isActive ? 'Aktif' : 'Pasif' }}</p>
+    <p>Kayıt: {{ selected.createdAt | date:'short' }}</p>
+    <div class="admin-modal-actions">
+      <button class="linkish" type="button" (click)="selected=undefined">Kapat</button>
+    </div>
+  </div>
+</div>

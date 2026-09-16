@@ -16,22 +16,30 @@
     </td>
   </tr>
 </table>
-<form class="form-card" *ngIf="editing" (ngSubmit)="save()">
-  <div class="form-grid">
-    <label>Ad<input [(ngModel)]="editing.name" name="name" required></label>
-    <label>Tip
-      <select [(ngModel)]="editing.discountType" name="discountType">
-        <option [ngValue]="0">Yüzde</option>
-        <option [ngValue]="1">Tutar</option>
-      </select>
-    </label>
-    <label>Değer<input type="number" [(ngModel)]="editing.discountValue" name="discountValue"></label>
-    <label>Kupon<input [(ngModel)]="editing.couponCode" name="couponCode"></label>
-    <label>Min. tutar<input type="number" [(ngModel)]="editing.minOrderAmount" name="minOrderAmount"></label>
-    <label>Başlangıç<input type="datetime-local" [(ngModel)]="editing.startDate" name="startDate"></label>
-    <label>Bitiş<input type="datetime-local" [(ngModel)]="editing.endDate" name="endDate"></label>
-    <label class="check"><input type="checkbox" [(ngModel)]="editing.isActive" name="isActive"> Aktif</label>
-    <label class="full">Açıklama<textarea [(ngModel)]="editing.description" name="description"></textarea></label>
-  </div>
-  <button class="btn-accent" type="submit">Kaydet</button>
-</form>
+
+<div class="admin-modal-backdrop" *ngIf="editing" (click)="editing=null">
+  <form class="admin-modal" (click)="$event.stopPropagation()" (ngSubmit)="save()">
+    <button class="admin-modal-close" type="button" (click)="editing=null" aria-label="Kapat">×</button>
+    <h3>{{ editing.id ? 'Kampanya düzenle' : 'Yeni kampanya' }}</h3>
+    <div class="form-grid">
+      <label>Ad<input [(ngModel)]="editing.name" name="name" required></label>
+      <label>Tip
+        <select [(ngModel)]="editing.discountType" name="discountType">
+          <option [ngValue]="0">Yüzde</option>
+          <option [ngValue]="1">Tutar</option>
+        </select>
+      </label>
+      <label>Değer<input type="number" [(ngModel)]="editing.discountValue" name="discountValue"></label>
+      <label>Kupon<input [(ngModel)]="editing.couponCode" name="couponCode"></label>
+      <label>Min. tutar<input type="number" [(ngModel)]="editing.minOrderAmount" name="minOrderAmount"></label>
+      <label>Başlangıç<input type="datetime-local" [(ngModel)]="editing.startDate" name="startDate"></label>
+      <label>Bitiş<input type="datetime-local" [(ngModel)]="editing.endDate" name="endDate"></label>
+      <label class="check"><input type="checkbox" [(ngModel)]="editing.isActive" name="isActive"> Aktif</label>
+      <label class="full">Açıklama<textarea [(ngModel)]="editing.description" name="description"></textarea></label>
+    </div>
+    <div class="admin-modal-actions">
+      <button class="btn-accent" type="submit">Kaydet</button>
+      <button class="linkish" type="button" (click)="editing=null">Vazgeç</button>
+    </div>
+  </form>
+</div>

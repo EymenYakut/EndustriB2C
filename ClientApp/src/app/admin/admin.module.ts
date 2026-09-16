@@ -13,6 +13,7 @@ import { AdminCampaignsComponent } from './campaigns/admin-campaigns.component';
 import { AdminFeaturesComponent } from './features/admin-features.component';
 import { AdminUsersComponent } from './users/admin-users.component';
 import { AdminCategoriesComponent } from './categories/admin-categories.component';
+import { AdminSlidersComponent } from './sliders/admin-sliders.component';
 
 const routes: Routes = [
   { path: 'login', component: AdminLoginComponent },
@@ -24,6 +25,7 @@ const routes: Routes = [
       { path: '', component: AdminDashboardComponent },
       { path: 'urunler', component: AdminProductsComponent },
       { path: 'kategoriler', component: AdminCategoriesComponent },
+      { path: 'slider', component: AdminSlidersComponent },
       { path: 'siparisler', component: AdminOrdersComponent },
       { path: 'musteriler', component: AdminCustomersComponent },
       { path: 'kampanyalar', component: AdminCampaignsComponent },
@@ -44,7 +46,8 @@ const routes: Routes = [
     AdminCampaignsComponent,
     AdminFeaturesComponent,
     AdminUsersComponent,
-    AdminCategoriesComponent
+    AdminCategoriesComponent,
+    AdminSlidersComponent
   ],
   imports: [CommonModule, FormsModule, RouterModule.forChild(routes)]
 })

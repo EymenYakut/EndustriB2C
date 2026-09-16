@@ -8,10 +8,15 @@ import { UserDto } from '../../core/models/models';
 })
 export class AdminUsersComponent implements OnInit {
   users: UserDto[] = [];
+  selected?: UserDto;
 
   constructor(private admin: AdminApiService) {}
 
   ngOnInit(): void {
     this.admin.users().subscribe(u => this.users = u);
+  }
+
+  open(u: UserDto): void {
+    this.selected = u;
   }
 }

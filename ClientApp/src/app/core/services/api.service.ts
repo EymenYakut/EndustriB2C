@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
-import { CartDto, ProductDetailDto, ProductListDto, CampaignDto, OrderDetailDto, OrderListDto, UserAddressDto, UserDto, CategoryDto } from '../models/models';
+import { CartDto, ProductDetailDto, ProductListDto, CampaignDto, OrderDetailDto, OrderListDto, UserAddressDto, UserDto, CategoryDto, PagedResult, SliderDto } from '../models/models';
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
@@ -14,15 +14,22 @@ export class ApiService {
     return this.cartSubject.value?.itemCount ?? 0;
   }
 
+  get cartLineCount(): number {
+    return this.cartSubject.value?.items?.length ?? 0;
+  }
+
   loadCart(): void {
     this.getCart().subscribe();
   }
 
-  products(category?: string, q?: string): Observable<ProductListDto[]> {
-    const params: Record<string, string> = {};
+  products(category?: string, q?: string, page = 1, pageSize = 12): Observable<PagedResult<ProductListDto>> {
+    const params: Record<string, string> = {
+      page: String(page),
+      pageSize: String(pageSize)
+    };
     if (category) params['category'] = category;
     if (q) params['q'] = q;
-    return this.http.get<ProductListDto[]>('/api/products', { params });
+    return this.http.get<PagedResult<ProductListDto>>('/api/products', { params });
   }
 
   product(id: number): Observable<ProductDetailDto> {
@@ -35,6 +42,10 @@ export class ApiService {
 
   campaigns(): Observable<CampaignDto[]> {
     return this.http.get<CampaignDto[]>('/api/campaigns');
+  }
+
+  sliders(): Observable<SliderDto[]> {
+    return this.http.get<SliderDto[]>('/api/sliders');
   }
 
   categories(): Observable<CategoryDto[]> {
@@ -50,7 +61,7 @@ export class ApiService {
   }
 
   updateCartItem(id: number, quantity: number): Observable<CartDto> {
-    return this.http.put<CartDto>(`/api/cart/items/${id}`, { productId: 0, quantity }).pipe(tap(c => this.cartSubject.next(c)));
+    return this.http.put<CartDto>(`/api/cart/items/${id}`, { quantity }).pipe(tap(c => this.cartSubject.next(c)));
   }
 
   removeCartItem(id: number): Observable<CartDto> {
@@ -65,6 +76,10 @@ export class ApiService {
 
   myOrders(): Observable<OrderListDto[]> {
     return this.http.get<OrderListDto[]>('/api/orders/mine');
+  }
+
+  myOrder(id: number): Observable<OrderDetailDto> {
+    return this.http.get<OrderDetailDto>(`/api/orders/mine/${id}`);
   }
 
   account(): Observable<UserDto> {

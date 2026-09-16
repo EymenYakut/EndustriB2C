@@ -26,7 +26,10 @@ public class AdminCategoriesController : ControllerBase
     public async Task<ActionResult<IEnumerable<CategoryDto>>> List()
     {
         var list = await _db.Categories.AsNoTracking()
-            .OrderBy(c => c.SortOrder)
+            .Include(c => c.MainCategory)
+            .OrderByDescending(c => c.IsMainCategory)
+            .ThenBy(c => c.MainCategoryId)
+            .ThenBy(c => c.SortOrder)
             .Select(c => new CategoryDto
             {
                 Id = c.Id,
@@ -36,6 +39,9 @@ public class AdminCategoriesController : ControllerBase
                 ImageUrl = c.ImageUrl,
                 SortOrder = c.SortOrder,
                 IsActive = c.IsActive,
+                IsMainCategory = c.IsMainCategory,
+                MainCategoryId = c.MainCategoryId,
+                MainCategoryName = c.MainCategory != null ? c.MainCategory.Name : null,
                 ProductCount = c.ProductCategories.Count
             })
             .ToListAsync();
@@ -46,6 +52,8 @@ public class AdminCategoriesController : ControllerBase
     public async Task<ActionResult<CategoryDto>> Create([FromBody] CategoryRequest request)
     {
         if (!ModelState.IsValid) return ValidationProblem(ModelState);
+        var hierarchyError = await ValidateHierarchyAsync(request);
+        if (hierarchyError is not null) return BadRequest(new { message = hierarchyError });
         var entity = new Category { CreatedAt = DateTimeOffset.UtcNow };
         Apply(entity, request);
         if (await _db.Categories.AnyAsync(c => c.Slug == entity.Slug))
@@ -62,6 +70,8 @@ public class AdminCategoriesController : ControllerBase
     {
         var entity = await _db.Categories.FindAsync(id);
         if (entity is null) return NotFound();
+        var hierarchyError = await ValidateHierarchyAsync(request, id);
+        if (hierarchyError is not null) return BadRequest(new { message = hierarchyError });
         Apply(entity, request);
         if (await _db.Categories.AnyAsync(c => c.Slug == entity.Slug && c.Id != id))
         {
@@ -76,6 +86,10 @@ public class AdminCategoriesController : ControllerBase
     {
         var entity = await _db.Categories.FindAsync(id);
         if (entity is null) return NotFound();
+        if (await _db.Categories.AnyAsync(c => c.MainCategoryId == id))
+        {
+            return BadRequest(new { message = "Alt kategorileri olan ana kategori silinemez." });
+        }
         if (await _db.ProductCategories.AnyAsync(pc => pc.CategoryId == id))
         {
             return BadRequest(new { message = "Kategori ürünlerde kullanıldığı için silinemez." });
@@ -115,5 +129,43 @@ public class AdminCategoriesController : ControllerBase
         entity.ImageUrl = string.IsNullOrWhiteSpace(request.ImageUrl) ? entity.ImageUrl : request.ImageUrl.Trim();
         entity.SortOrder = request.SortOrder;
         entity.IsActive = request.IsActive;
+        entity.IsMainCategory = request.IsMainCategory;
+        entity.MainCategoryId = request.IsMainCategory ? null : request.MainCategoryId;
+    }
+
+    private async Task<string?> ValidateHierarchyAsync(CategoryRequest request, int? id = null)
+    {
+        if (request.IsMainCategory)
+        {
+            return null;
+        }
+
+        if (request.MainCategoryId is not int parentId || parentId <= 0)
+        {
+            return "Alt kategori için ana kategori seçilmelidir.";
+        }
+
+        if (id.HasValue && parentId == id.Value)
+        {
+            return "Kategori kendisine bağlanamaz.";
+        }
+
+        var parent = await _db.Categories.AsNoTracking().FirstOrDefaultAsync(c => c.Id == parentId);
+        if (parent is null)
+        {
+            return "Ana kategori bulunamadı.";
+        }
+
+        if (!parent.IsMainCategory)
+        {
+            return "Alt kategori yalnızca bir ana kategoriye bağlanabilir.";
+        }
+
+        if (id.HasValue && await _db.Categories.AnyAsync(c => c.MainCategoryId == id.Value))
+        {
+            return "Alt kategorisi olan kayıt ana kategori olarak kalmalıdır.";
+        }
+
+        return null;
     }
 }

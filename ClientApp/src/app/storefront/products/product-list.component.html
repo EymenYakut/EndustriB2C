@@ -1,32 +1,167 @@
 <section class="page-head">
   <div class="container-xl">
+    <p class="eyebrow">KATALOG</p>
     <h1>Ürünlerimiz</h1>
     <p>Endüstriyel hortum, bağlantı elemanı ve PVC çözümleri.</p>
   </div>
 </section>
 <div class="container-xl catalog">
-  <aside class="filters">
-    <h3>Kategoriler</h3>
-    <a routerLink="/urunler" [class.active]="!category">Tümü</a>
-    <a *ngFor="let c of categories" routerLink="/urunler" [queryParams]="{category: c.slug}" [class.active]="category === c.slug">{{ c.name }}</a>
-  </aside>
-  <div>
-    <div class="product-grid" *ngIf="products.length; else empty">
-      <a class="product-card" *ngFor="let p of products" [routerLink]="['/urunler', p.slug]">
-        <div class="product-visual" [class.has-img]="p.imageUrl">
-          <img *ngIf="p.imageUrl" [src]="p.imageUrl" [alt]="p.name">
-          <span *ngIf="!p.imageUrl">{{ p.sku }}</span>
-        </div>
-        <div class="product-body">
-          <small>{{ p.sku }}</small>
-          <h3>{{ p.name }}</h3>
-          <div class="price-row">
-            <strong *ngIf="p.discountedPrice">{{ p.discountedPrice | number:'1.2-2' }} {{ p.currency }}</strong>
-            <span [class.old]="p.discountedPrice">{{ p.price | number:'1.2-2' }} {{ p.currency }}</span>
+  <div class="filters-backdrop" *ngIf="filtersOpen" (click)="filtersOpen = false"></div>
+  <aside class="filters" [class.open]="filtersOpen">
+    <div class="filters-sheet-head">
+      <strong>Filtrele</strong>
+      <button class="filters-close" type="button" (click)="filtersOpen = false" aria-label="Kapat">×</button>
+    </div>
+    <form class="filter-card filter-search" (ngSubmit)="applySearch()">
+      <label class="filter-head" for="product-search">
+        <svg class="filter-head-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M16 16l4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        <span>Ürün ara</span>
+      </label>
+      <div class="filter-search-row">
+        <input id="product-search" name="q" [(ngModel)]="searchText" placeholder="SKU, ürün veya marka">
+        <button class="btn-accent" type="submit">Ara</button>
+      </div>
+    </form>
+
+    <nav class="filter-card">
+      <div class="filter-head">
+        <svg class="filter-head-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v4l-6 6v6l-4-2v-4L4 8z" fill="currentColor"/></svg>
+        <h3>Kategoriler</h3>
+      </div>
+      <div class="filter-list">
+        <a class="filter-all" routerLink="/urunler" [queryParams]="{}" [class.active]="!category && !q">
+          <span>Tüm ürünler</span>
+          <span class="filter-count" *ngIf="totalCategoryCount">{{ totalCategoryCount }}</span>
+        </a>
+        <div class="filter-group" *ngFor="let c of categories" [class.open]="isOpen(c)" [class.picked]="isGroupActive(c)">
+          <button type="button" class="filter-main" (click)="toggleGroup(c)">
+            <span class="filter-main-text">{{ readable(c.name) }}</span>
+            <svg class="filter-caret" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <div class="filter-subs" *ngIf="isOpen(c)">
+            <a class="filter-sub" routerLink="/urunler" [queryParams]="filterParams(c.slug)" [class.active]="category === c.slug">
+              <span>Bu kategorinin tümü</span>
+              <span class="filter-count" *ngIf="c.productCount">{{ c.productCount }}</span>
+            </a>
+            <a class="filter-sub" *ngFor="let s of c.children" routerLink="/urunler" [queryParams]="filterParams(s.slug)" [class.active]="category === s.slug">
+              <span>{{ readable(s.name) }}</span>
+              <span class="filter-count" *ngIf="s.productCount">{{ s.productCount }}</span>
+            </a>
           </div>
         </div>
-      </a>
+      </div>
+      <button class="filter-reset" type="button" (click)="resetFilters()" [disabled]="!category && !q && !searchText.trim()">
+        Filtreleri sıfırla
+      </button>
+    </nav>
+  </aside>
+  <div>
+    <div class="catalog-toolbar">
+      <p>
+        <strong>{{ total }}</strong> ürün
+        <span *ngIf="total"> · {{ pageStart }}–{{ pageEnd }}</span>
+        <span *ngIf="category || q"> · {{ selectedCategoryName }}<ng-container *ngIf="q"> · “{{ q }}”</ng-container></span>
+      </p>
+      <button class="filter-toggle" type="button" (click)="filtersOpen = true">Filtrele</button>
+    </div>
+    <div class="product-grid" *ngIf="products.length; else empty">
+      <article class="product-card" *ngFor="let p of products">
+        <button class="product-hit" type="button" (click)="open(p)">
+          <div class="product-visual" [class.has-img]="p.imageUrl">
+            <img *ngIf="p.imageUrl" [src]="p.imageUrl" [alt]="p.name">
+            <span *ngIf="!p.imageUrl">{{ p.sku }}</span>
+          </div>
+          <div class="product-body">
+            <h3>{{ p.name }}</h3>
+            <p class="product-sku">Kod: {{ p.sku }}</p>
+            <p class="product-excerpt" *ngIf="p.shortDescription">{{ p.shortDescription }}</p>
+            <div class="product-specs" *ngIf="p.features?.length">
+              <p *ngFor="let f of p.features"><strong>{{ f.headerName }}:</strong> {{ f.value }}</p>
+            </div>
+          </div>
+        </button>
+        <div class="product-buy">
+          <div class="qty-stepper">
+            <button type="button" (click)="adjust(p, -1)" [disabled]="qtyOf(p) <= 1" aria-label="Azalt">−</button>
+            <input type="number" min="1" [max]="p.stock" [ngModel]="qtyOf(p)"
+              (change)="setQty(p, +$any($event.target).value)">
+            <button type="button" (click)="adjust(p, 1)" [disabled]="qtyOf(p) >= p.stock" aria-label="Artır">+</button>
+          </div>
+          <button class="btn-accent" type="button" (click)="add(p)" [disabled]="p.stock < 1 || adding[p.id]">
+            {{ p.stock < 1 ? 'Stok yok' : (adding[p.id] ? 'Ekleniyor…' : 'Sepete Ekle') }}
+          </button>
+          <small class="ok" *ngIf="cardMessage[p.id]">{{ cardMessage[p.id] }}</small>
+          <small class="err" *ngIf="cardError[p.id]">{{ cardError[p.id] }}</small>
+        </div>
+      </article>
     </div>
     <ng-template #empty><p>Bu kriterlere uygun ürün bulunamadı.</p></ng-template>
+    <nav class="pager" *ngIf="totalPages > 1">
+      <button type="button" (click)="goToPage(page - 1)" [disabled]="page <= 1">‹ Önceki</button>
+      <button type="button" *ngFor="let n of pageNumbers" (click)="goToPage(n)" [class.active]="n === page">{{ n }}</button>
+      <button type="button" (click)="goToPage(page + 1)" [disabled]="page >= totalPages">Sonraki ›</button>
+    </nav>
   </div>
+</div>
+
+<div class="pd-modal-backdrop" *ngIf="detail || modalLoading" (click)="close()">
+  <div class="pd-modal" role="dialog" aria-modal="true" [attr.aria-label]="detail?.name || 'Ürün detayı'" (click)="$event.stopPropagation()">
+    <button class="pd-modal-close" type="button" (click)="close()" aria-label="Kapat">×</button>
+
+    <div class="pd-modal-loading" *ngIf="modalLoading && !detail">Yükleniyor…</div>
+
+    <ng-container *ngIf="detail">
+      <div class="pd-modal-grid">
+        <button class="pd-visual" type="button" [class.has-img]="detail.imageUrl" [class.zoomable]="!!detail.imageUrl"
+          (click)="openZoom($event)" [disabled]="!detail.imageUrl" [attr.aria-label]="detail.imageUrl ? 'Resmi büyüt' : null">
+          <img *ngIf="detail.imageUrl" [src]="detail.imageUrl" [alt]="detail.name">
+          <span *ngIf="!detail.imageUrl">{{ detail.sku }}</span>
+          <span class="pd-zoom-hint" *ngIf="detail.imageUrl">Büyüt</span>
+        </button>
+        <div class="pd-modal-info">
+          <small class="eyebrow">{{ detail.sku }} · Stok: {{ detail.stock }}</small>
+          <h2>{{ detail.name }}</h2>
+          <p *ngIf="detail.manufacturer"><strong>Üretici:</strong> {{ detail.manufacturer }}</p>
+          <p *ngIf="detail.categories?.length">
+            Kategori:
+            <span *ngFor="let c of detail.categories; let last = last">{{ c.name }}<span *ngIf="!last">, </span></span>
+          </p>
+          <p>{{ detail.shortDescription }}</p>
+          <div class="pd-modal-buy">
+            <div class="qty-stepper">
+              <button type="button" (click)="adjustModal(-1)" [disabled]="modalQty <= 1" aria-label="Azalt">−</button>
+              <input type="number" min="1" [max]="detail.stock" [ngModel]="modalQty"
+                (change)="setModalQty(+$any($event.target).value)">
+              <button type="button" (click)="adjustModal(1)" [disabled]="modalQty >= detail.stock" aria-label="Artır">+</button>
+            </div>
+            <button class="btn-accent" type="button" (click)="addFromModal()" [disabled]="detail.stock < 1 || modalAdding">
+              {{ detail.stock < 1 ? 'Stok yok' : (modalAdding ? 'Ekleniyor…' : 'Sepete Ekle') }}
+            </button>
+          </div>
+          <p class="ok" *ngIf="modalMessage">{{ modalMessage }}</p>
+          <p class="err" *ngIf="modalError">{{ modalError }}</p>
+          <p class="hint">Sepete ekleyin, ardından Bilgi Al ile WhatsApp’tan sorun.</p>
+        </div>
+      </div>
+      <section *ngIf="detail.description || detail.features?.length">
+        <h3 *ngIf="detail.description">Ürün açıklaması</h3>
+        <p *ngIf="detail.description">{{ detail.description }}</p>
+        <table class="spec" *ngIf="detail.features?.length">
+          <tr *ngFor="let f of detail.features">
+            <th>{{ f.headerName }}</th>
+            <td>{{ f.value }} <small *ngIf="f.unit">{{ f.unit }}</small></td>
+          </tr>
+        </table>
+      </section>
+    </ng-container>
+  </div>
+</div>
+
+<div class="pd-zoom" *ngIf="zoomOpen && zoomSrc" (click)="closeZoom($event)">
+  <button class="pd-zoom-close" type="button" (click)="closeZoom($event)" aria-label="Kapat">×</button>
+  <button class="pd-zoom-nav prev" type="button" *ngIf="zoomImages.length > 1" (click)="zoomStep(-1, $event)" aria-label="Önceki">‹</button>
+  <img [src]="zoomSrc" [alt]="detail?.name" (click)="$event.stopPropagation()">
+  <button class="pd-zoom-nav next" type="button" *ngIf="zoomImages.length > 1" (click)="zoomStep(1, $event)" aria-label="Sonraki">›</button>
 </div>

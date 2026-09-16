@@ -49,7 +49,6 @@ public class AuthService
         _db.Users.Add(user);
         await _db.SaveChangesAsync();
 
-        await MergeGuestCartAsync(user.Id, http);
         return await IssueAsync(user, http);
     }
 
@@ -58,6 +57,11 @@ public class AuthService
         var email = request.Email.Trim().ToLowerInvariant();
         var user = await _db.Users.FirstOrDefaultAsync(x => x.Email == email)
                    ?? throw new UnauthorizedAccessException("E-posta veya şifre hatalı.");
+
+        if (user.UserType != UserType.Admin)
+        {
+            throw new UnauthorizedAccessException("Mağazada üyelik yoktur. Yönetim girişi /admin üzerinden yapılır.");
+        }
 
         if (!user.IsActive)
         {
@@ -90,7 +94,6 @@ public class AuthService
         user.FailedLoginCount = 0;
         user.LockoutEnd = null;
         user.LastLoginAt = DateTimeOffset.UtcNow;
-        await MergeGuestCartAsync(user.Id, http);
         return await IssueAsync(user, http);
     }
 
@@ -108,6 +111,11 @@ public class AuthService
         if (!user.IsActive || user.RefreshTokenExpiry is null || user.RefreshTokenExpiry < DateTimeOffset.UtcNow)
         {
             throw new UnauthorizedAccessException("Oturum süresi doldu.");
+        }
+
+        if (user.UserType != UserType.Admin)
+        {
+            throw new UnauthorizedAccessException("Mağazada üyelik yoktur.");
         }
 
         return await IssueAsync(user, http);
@@ -144,49 +152,6 @@ public class AuthService
             ExpiresIn = tokens.ExpiresIn,
             User = user.ToDto()
         };
-    }
-
-    private async Task MergeGuestCartAsync(int userId, HttpContext http)
-    {
-        if (!http.Request.Cookies.TryGetValue(GuestCartCookie, out var tokenValue) || !Guid.TryParse(tokenValue, out var guestToken))
-        {
-            return;
-        }
-
-        var guestCart = await _db.Carts.Include(c => c.Items).FirstOrDefaultAsync(c => c.GuestToken == guestToken);
-        if (guestCart is null)
-        {
-            return;
-        }
-
-        var userCart = await _db.Carts.Include(c => c.Items).FirstOrDefaultAsync(c => c.UserId == userId);
-        if (userCart is null)
-        {
-            guestCart.UserId = userId;
-            guestCart.GuestToken = null;
-            guestCart.ExpiresAt = null;
-            guestCart.UpdatedAt = DateTimeOffset.UtcNow;
-        }
-        else
-        {
-            foreach (var item in guestCart.Items)
-            {
-                var existing = userCart.Items.FirstOrDefault(x => x.ProductId == item.ProductId);
-                if (existing is null)
-                {
-                    userCart.Items.Add(new CartItem { ProductId = item.ProductId, Quantity = item.Quantity });
-                }
-                else
-                {
-                    existing.Quantity += item.Quantity;
-                }
-            }
-            userCart.UpdatedAt = DateTimeOffset.UtcNow;
-            _db.Carts.Remove(guestCart);
-        }
-
-        await _db.SaveChangesAsync();
-        http.Response.Cookies.Delete(GuestCartCookie, CookieOptions(TimeSpan.Zero));
     }
 
     private CookieOptions CookieOptions(TimeSpan maxAge) => new()

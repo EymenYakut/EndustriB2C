@@ -163,6 +163,12 @@ namespace EndustriB2C.Data.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("IsMainCategory")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("MainCategoryId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(160)
@@ -178,10 +184,55 @@ namespace EndustriB2C.Data.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("MainCategoryId");
+
                     b.HasIndex("Slug")
                         .IsUnique();
 
                     b.ToTable("Categories", (string)null);
+                });
+
+            modelBuilder.Entity("EndustriB2C.Entities.HomeSlider", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ButtonText")
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<string>("ButtonUrl")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("ImageUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Subtitle")
+                        .HasMaxLength(400)
+                        .HasColumnType("nvarchar(400)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(160)
+                        .HasColumnType("nvarchar(160)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("HomeSliders", (string)null);
                 });
 
             modelBuilder.Entity("EndustriB2C.Entities.OrderDetail", b =>
@@ -718,6 +769,16 @@ namespace EndustriB2C.Data.Migrations
                     b.Navigation("Product");
                 });
 
+            modelBuilder.Entity("EndustriB2C.Entities.Category", b =>
+                {
+                    b.HasOne("EndustriB2C.Entities.Category", "MainCategory")
+                        .WithMany("SubCategories")
+                        .HasForeignKey("MainCategoryId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("MainCategory");
+                });
+
             modelBuilder.Entity("EndustriB2C.Entities.OrderDetail", b =>
                 {
                     b.HasOne("EndustriB2C.Entities.OrderHeader", "OrderHeader")
@@ -858,6 +919,8 @@ namespace EndustriB2C.Data.Migrations
             modelBuilder.Entity("EndustriB2C.Entities.Category", b =>
                 {
                     b.Navigation("ProductCategories");
+
+                    b.Navigation("SubCategories");
                 });
 
             modelBuilder.Entity("EndustriB2C.Entities.OrderHeader", b =>

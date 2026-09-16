@@ -33,8 +33,9 @@ public class CartController : ControllerBase
     }
 
     [HttpPut("items/{id:int}")]
-    public async Task<ActionResult<CartDto>> Update(int id, [FromBody] CartItemRequest request)
+    public async Task<ActionResult<CartDto>> Update(int id, [FromBody] CartQuantityRequest request)
     {
+        if (!ModelState.IsValid) return ValidationProblem(ModelState);
         try
         {
             return Ok(await _carts.UpdateQtyAsync(HttpContext, id, request.Quantity));

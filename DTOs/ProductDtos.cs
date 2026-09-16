@@ -3,6 +3,15 @@ using EndustriB2C.Entities;
 
 namespace EndustriB2C.DTOs;
 
+public class PagedResult<T>
+{
+    public List<T> Items { get; set; } = new();
+    public int Total { get; set; }
+    public int Page { get; set; }
+    public int PageSize { get; set; }
+    public int TotalPages => PageSize <= 0 ? 0 : (int)Math.Ceiling(Total / (double)PageSize);
+}
+
 public class ProductListDto
 {
     public int Id { get; set; }
@@ -21,13 +30,13 @@ public class ProductListDto
     public string Currency { get; set; } = "TRY";
     public string? ImageUrl { get; set; }
     public string? CampaignName { get; set; }
+    public List<ProductFeatureValueDto> Features { get; set; } = new();
 }
 
 public class ProductDetailDto : ProductListDto
 {
     public string? Description { get; set; }
     public List<ProductImageDto> Images { get; set; } = new();
-    public List<ProductFeatureValueDto> Features { get; set; } = new();
     public List<ProductPriceDto> Prices { get; set; } = new();
     public List<ProductTranslationDto> Translations { get; set; } = new();
 }
@@ -94,7 +103,6 @@ public class ProductSaveRequest
     [MinLength(1)]
     public List<ProductTranslationDto> Translations { get; set; } = new();
 
-    [MinLength(1)]
     public List<ProductPriceSaveDto> Prices { get; set; } = new();
 
     public List<ProductFeatureSaveDto> Features { get; set; } = new();
@@ -151,7 +159,11 @@ public class CategoryDto
     public string? ImageUrl { get; set; }
     public int SortOrder { get; set; }
     public bool IsActive { get; set; }
+    public bool IsMainCategory { get; set; }
+    public int? MainCategoryId { get; set; }
+    public string? MainCategoryName { get; set; }
     public int ProductCount { get; set; }
+    public List<CategoryDto> Children { get; set; } = new();
 }
 
 public class CategoryRequest
@@ -170,6 +182,8 @@ public class CategoryRequest
 
     public int SortOrder { get; set; }
     public bool IsActive { get; set; } = true;
+    public bool IsMainCategory { get; set; } = true;
+    public int? MainCategoryId { get; set; }
 }
 
 public static class CategoryMaps
@@ -183,6 +197,9 @@ public static class CategoryMaps
         ImageUrl = c.ImageUrl,
         SortOrder = c.SortOrder,
         IsActive = c.IsActive,
+        IsMainCategory = c.IsMainCategory,
+        MainCategoryId = c.MainCategoryId,
+        MainCategoryName = c.MainCategory?.Name,
         ProductCount = productCount
     };
 }
@@ -226,7 +243,19 @@ public static class ProductMaps
             DiscountedPrice = discounted,
             Currency = price?.Currency ?? "TRY",
             ImageUrl = image?.FilePath,
-            CampaignName = campaignName
+            CampaignName = campaignName,
+            Features = p.Features
+                .Where(x => x.Header != null && !string.IsNullOrWhiteSpace(x.Value))
+                .OrderBy(x => x.Header.SortOrder)
+                .Select(x => new ProductFeatureValueDto
+                {
+                    Id = x.Id,
+                    HeaderId = x.ProductFeaturesHeaderId,
+                    HeaderName = x.Header.Name,
+                    Unit = x.Header.Unit,
+                    Value = x.Value
+                })
+                .ToList()
         };
     }
 

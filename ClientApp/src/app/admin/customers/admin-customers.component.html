@@ -1,4 +1,6 @@
-<h1>Müşteriler</h1>
+<div class="admin-head">
+  <h1>Müşteriler</h1>
+</div>
 <table class="admin-table">
   <tr><th>Ad</th><th>E-posta</th><th>Telefon</th><th>Durum</th><th></th></tr>
   <tr *ngFor="let c of customers">
@@ -12,17 +14,24 @@
     </td>
   </tr>
 </table>
-<div class="form-card" *ngIf="detail">
-  <h3>{{ detail.user.fullName }}</h3>
-  <p>{{ detail.user.email }} · {{ detail.user.phone }}</p>
-  <h4>Adresler</h4>
-  <p *ngFor="let a of detail.addresses">{{ a.title }}: {{ a.addressLine }}, {{ a.district }}/{{ a.city }}</p>
-  <h4>Siparişler</h4>
-  <table class="admin-table">
-    <tr *ngFor="let o of detail.orders">
-      <td>{{ o.orderNumber }}</td>
-      <td>{{ o.total | number:'1.2-2' }}</td>
-      <td>{{ statuses[o.status] }}</td>
-    </tr>
-  </table>
+
+<div class="admin-modal-backdrop" *ngIf="detail" (click)="detail=null">
+  <div class="admin-modal" (click)="$event.stopPropagation()">
+    <button class="admin-modal-close" type="button" (click)="detail=null" aria-label="Kapat">×</button>
+    <h3>{{ detail.user.fullName }}</h3>
+    <p>{{ detail.user.email }} · {{ detail.user.phone }}</p>
+    <h4>Adresler</h4>
+    <p *ngFor="let a of detail.addresses">{{ a.title }}: {{ a.addressLine }}, {{ a.district }}/{{ a.city }}</p>
+    <h4>Siparişler</h4>
+    <table class="admin-table">
+      <tr *ngFor="let o of detail.orders">
+        <td>{{ o.orderNumber }}</td>
+        <td>{{ o.total | number:'1.2-2' }}</td>
+        <td>{{ statuses[o.status] }}</td>
+      </tr>
+    </table>
+    <div class="admin-modal-actions">
+      <button class="linkish" type="button" (click)="detail=null">Kapat</button>
+    </div>
+  </div>
 </div>

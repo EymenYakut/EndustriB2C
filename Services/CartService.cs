@@ -1,4 +1,3 @@
-using EndustriB2C.Auth;
 using EndustriB2C.Data;
 using EndustriB2C.DTOs;
 using EndustriB2C.Entities;
@@ -8,24 +7,19 @@ namespace EndustriB2C.Services;
 
 public class CartService
 {
-    private readonly AppDbContext _db;
-    private readonly ICurrentUser _current;
+    public const string GuestCartCookie = "b2c_guest";
 
-    public CartService(AppDbContext db, ICurrentUser current)
+    private readonly AppDbContext _db;
+
+    public CartService(AppDbContext db)
     {
         _db = db;
-        _current = current;
     }
 
     public async Task<CartDto> GetAsync(HttpContext http)
     {
         var cart = await LoadOrCreateAsync(http, createIfMissing: false);
-        if (cart is null)
-        {
-            return new CartDto { IsGuest = !_current.IsAuthenticated };
-        }
-
-        return ToDto(cart);
+        return cart is null ? new CartDto { IsGuest = true } : ToDto(cart);
     }
 
     public async Task<CartDto> AddAsync(HttpContext http, CartItemRequest request)
@@ -57,7 +51,7 @@ public class CartService
 
         cart.UpdatedAt = DateTimeOffset.UtcNow;
         await _db.SaveChangesAsync();
-        return await GetAsync(http);
+        return await ReloadDtoAsync(cart.Id);
     }
 
     public async Task<CartDto> UpdateQtyAsync(HttpContext http, int itemId, int quantity)
@@ -79,7 +73,7 @@ public class CartService
 
         cart.UpdatedAt = DateTimeOffset.UtcNow;
         await _db.SaveChangesAsync();
-        return await GetAsync(http);
+        return await ReloadDtoAsync(cart.Id);
     }
 
     public async Task ClearAsync(HttpContext http)
@@ -93,9 +87,8 @@ public class CartService
 
     public async Task<Cart?> LoadTrackedAsync(HttpContext http) => await LoadOrCreateAsync(http, false);
 
-    private async Task<Cart?> LoadOrCreateAsync(HttpContext http, bool createIfMissing)
-    {
-        IQueryable<Cart> q = _db.Carts
+    private IQueryable<Cart> CartQuery() =>
+        _db.Carts
             .Include(c => c.Items)
                 .ThenInclude(i => i.Product)
                     .ThenInclude(p => p.Translations)
@@ -107,34 +100,24 @@ public class CartService
                 .ThenInclude(i => i.Product)
                     .ThenInclude(p => p.Images);
 
-        Cart? cart = null;
-        if (_current.UserId is int userId)
-        {
-            cart = await q.FirstOrDefaultAsync(c => c.UserId == userId);
-            if (cart is null && createIfMissing)
-            {
-                cart = new Cart { UserId = userId };
-                _db.Carts.Add(cart);
-                await _db.SaveChangesAsync();
-                cart = await q.FirstAsync(c => c.Id == cart.Id);
-            }
-            return cart;
-        }
+    private async Task<CartDto> ReloadDtoAsync(int cartId)
+    {
+        var cart = await CartQuery().FirstAsync(c => c.Id == cartId);
+        return ToDto(cart);
+    }
 
+    private async Task<Cart?> LoadOrCreateAsync(HttpContext http, bool createIfMissing)
+    {
         Guid guestToken;
-        if (http.Request.Cookies.TryGetValue(AuthService.GuestCartCookie, out var raw) && Guid.TryParse(raw, out guestToken))
-        {
-            cart = await q.FirstOrDefaultAsync(c => c.GuestToken == guestToken);
-        }
-        else if (createIfMissing)
+        if (!(http.Request.Cookies.TryGetValue(GuestCartCookie, out var raw) && Guid.TryParse(raw, out guestToken)))
         {
             guestToken = Guid.NewGuid();
         }
-        else
-        {
-            return null;
-        }
 
+        // Her tarayıcıya özel kimlik: ilk ziyarette cookie yazılır, sonraki isteklerde aynı sepet kullanılır.
+        WriteGuestCookie(http, guestToken);
+
+        var cart = await CartQuery().FirstOrDefaultAsync(c => c.GuestToken == guestToken && c.UserId == null);
         if (cart is null && createIfMissing)
         {
             cart = new Cart
@@ -144,16 +127,15 @@ public class CartService
             };
             _db.Carts.Add(cart);
             await _db.SaveChangesAsync();
-            WriteGuestCookie(http, guestToken);
-            cart = await q.FirstAsync(c => c.Id == cart.Id);
+            cart = await CartQuery().FirstAsync(c => c.Id == cart.Id);
         }
 
         return cart;
     }
 
-    private void WriteGuestCookie(HttpContext http, Guid token)
+    private static void WriteGuestCookie(HttpContext http, Guid token)
     {
-        http.Response.Cookies.Append(AuthService.GuestCartCookie, token.ToString(), new CookieOptions
+        http.Response.Cookies.Append(GuestCartCookie, token.ToString(), new CookieOptions
         {
             HttpOnly = true,
             Secure = true,
@@ -188,7 +170,7 @@ public class CartService
         return new CartDto
         {
             Id = cart.Id,
-            IsGuest = cart.UserId is null,
+            IsGuest = true,
             ItemCount = items.Sum(x => x.Quantity),
             SubTotal = sub,
             DiscountAmount = 0,

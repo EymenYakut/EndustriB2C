@@ -20,6 +20,7 @@
       <label>Posta kodu<input [(ngModel)]="model.shippingPostalCode" name="shippingPostalCode"></label>
       <label>Kupon<input [(ngModel)]="model.couponCode" name="couponCode" placeholder="ENDUSTRI15"></label>
     </div>
+    <p class="hint">Siparişi tamamladığınızda özet ve gönderim bilgileri +90 553 438 04 09 numarasına WhatsApp mesajı olarak iletilir.</p>
     <p class="err" *ngIf="error">{{ error }}</p>
     <div class="cart-sum">
       <p>Toplam: <strong>{{ cart.total | number:'1.2-2' }} TRY</strong></p>

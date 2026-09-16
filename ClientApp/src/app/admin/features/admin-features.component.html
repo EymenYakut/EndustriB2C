@@ -1,13 +1,8 @@
-<h1>Ürün özellik başlıkları</h1>
+<div class="admin-head">
+  <h1>Ürün özellikleri</h1>
+  <button class="btn-accent" type="button" (click)="startNew()">Yeni özellik</button>
+</div>
 <p class="hint">Örn. Çap, Çalışma basıncı. Her ürün bu başlıklara kendi değerini bağlar.</p>
-<form class="form-card" (ngSubmit)="save()">
-  <div class="form-grid">
-    <label>Ad<input [(ngModel)]="model.name" name="name" required></label>
-    <label>Birim<input [(ngModel)]="model.unit" name="unit"></label>
-    <label>Sıra<input type="number" [(ngModel)]="model.sortOrder" name="sortOrder"></label>
-  </div>
-  <button class="btn-accent" type="submit">Kaydet</button>
-</form>
 <table class="admin-table">
   <tr><th>Ad</th><th>Birim</th><th>Sıra</th><th></th></tr>
   <tr *ngFor="let f of list">
@@ -20,3 +15,19 @@
     </td>
   </tr>
 </table>
+
+<div class="admin-modal-backdrop" *ngIf="editing" (click)="editing=null">
+  <form class="admin-modal narrow" (click)="$event.stopPropagation()" (ngSubmit)="save()">
+    <button class="admin-modal-close" type="button" (click)="editing=null" aria-label="Kapat">×</button>
+    <h3>{{ editing.id ? 'Özellik düzenle' : 'Yeni özellik' }}</h3>
+    <div class="form-grid">
+      <label>Ad<input [(ngModel)]="editing.name" name="name" required></label>
+      <label>Birim<input [(ngModel)]="editing.unit" name="unit"></label>
+      <label class="full">Sıra<input type="number" [(ngModel)]="editing.sortOrder" name="sortOrder"></label>
+    </div>
+    <div class="admin-modal-actions">
+      <button class="btn-accent" type="submit">Kaydet</button>
+      <button class="linkish" type="button" (click)="editing=null">Vazgeç</button>
+    </div>
+  </form>
+</div>

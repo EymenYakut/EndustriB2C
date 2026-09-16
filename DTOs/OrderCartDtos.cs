@@ -36,6 +36,12 @@ public class CartItemRequest
     public int Quantity { get; set; } = 1;
 }
 
+public class CartQuantityRequest
+{
+    [Range(1, 999)]
+    public int Quantity { get; set; } = 1;
+}
+
 public class CheckoutRequest
 {
     [Required, MaxLength(160)]
@@ -97,6 +103,7 @@ public class OrderDetailDto : OrderListDto
     public decimal DiscountAmount { get; set; }
     public string? CampaignName { get; set; }
     public string? Notes { get; set; }
+    public string? WhatsAppUrl { get; set; }
     public List<OrderLineDto> Lines { get; set; } = new();
 }
 
@@ -113,6 +120,54 @@ public class OrderLineDto
 public class OrderStatusRequest
 {
     public OrderStatus Status { get; set; }
+}
+
+public class AdminOrderLineRequest
+{
+    [Range(1, int.MaxValue)]
+    public int ProductId { get; set; }
+
+    [Range(1, 999)]
+    public int Quantity { get; set; } = 1;
+}
+
+public class AdminOrderCreateRequest
+{
+    [Required, MaxLength(160)]
+    public string CustomerName { get; set; } = string.Empty;
+
+    [Required, EmailAddress, MaxLength(256)]
+    public string CustomerEmail { get; set; } = string.Empty;
+
+    [Required, MaxLength(20)]
+    public string CustomerPhone { get; set; } = string.Empty;
+
+    [Required, MaxLength(160)]
+    public string ShippingFullName { get; set; } = string.Empty;
+
+    [Required, MaxLength(20)]
+    public string ShippingPhone { get; set; } = string.Empty;
+
+    [Required, MaxLength(80)]
+    public string ShippingCity { get; set; } = string.Empty;
+
+    [Required, MaxLength(80)]
+    public string ShippingDistrict { get; set; } = string.Empty;
+
+    [Required, MaxLength(500)]
+    public string ShippingAddressLine { get; set; } = string.Empty;
+
+    [MaxLength(16)]
+    public string? ShippingPostalCode { get; set; }
+
+    [MaxLength(40)]
+    public string? CouponCode { get; set; }
+
+    [MaxLength(1000)]
+    public string? Notes { get; set; }
+
+    [MinLength(1)]
+    public List<AdminOrderLineRequest> Lines { get; set; } = new();
 }
 
 public class CampaignDto

@@ -29,6 +29,14 @@ export interface UserAddressDto {
   isDefault: boolean;
 }
 
+export interface PagedResult<T> {
+  items: T[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
+
 export interface ProductListDto {
   id: number;
   sku: string;
@@ -46,6 +54,7 @@ export interface ProductListDto {
   currency: string;
   imageUrl?: string;
   campaignName?: string;
+  features?: ProductFeatureValueDto[];
 }
 
 export interface ProductDetailDto extends ProductListDto {
@@ -107,7 +116,11 @@ export interface CategoryDto {
   imageUrl?: string;
   sortOrder: number;
   isActive: boolean;
+  isMainCategory: boolean;
+  mainCategoryId?: number | null;
+  mainCategoryName?: string;
   productCount: number;
+  children?: CategoryDto[];
 }
 
 export interface CartDto {
@@ -155,7 +168,19 @@ export interface OrderDetailDto extends OrderListDto {
   discountAmount: number;
   campaignName?: string;
   notes?: string;
+  whatsAppUrl?: string;
   lines: { productId: number; productName: string; productSku: string; quantity: number; unitPrice: number; lineTotal: number; }[];
+}
+
+export interface SliderDto {
+  id: number;
+  title: string;
+  subtitle?: string;
+  buttonText?: string;
+  buttonUrl?: string;
+  imageUrl?: string;
+  sortOrder: number;
+  isActive: boolean;
 }
 
 export interface CampaignDto {

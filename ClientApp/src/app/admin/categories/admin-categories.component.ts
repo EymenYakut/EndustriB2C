@@ -19,12 +19,22 @@ export class AdminCategoriesComponent implements OnInit {
     this.admin.categories().subscribe(c => this.list = c);
   }
 
+  get mainOptions(): CategoryDto[] {
+    return this.list.filter(c => c.isMainCategory && c.id !== this.editing?.id);
+  }
+
   startNew(): void {
-    this.editing = { name: '', slug: '', description: '', imageUrl: '', sortOrder: 0, isActive: true };
+    this.editing = { name: '', slug: '', description: '', imageUrl: '', sortOrder: 0, isActive: true, isMainCategory: true, mainCategoryId: null };
   }
 
   edit(c: CategoryDto): void {
     this.editing = { ...c };
+  }
+
+  onTypeChange(): void {
+    if (this.editing?.isMainCategory) {
+      this.editing.mainCategoryId = null;
+    }
   }
 
   save(): void {

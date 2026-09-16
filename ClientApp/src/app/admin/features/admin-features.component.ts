@@ -8,7 +8,7 @@ import { FeatureHeaderDto } from '../../core/models/models';
 })
 export class AdminFeaturesComponent implements OnInit {
   list: FeatureHeaderDto[] = [];
-  model: any = { name: '', unit: '', sortOrder: 0 };
+  editing: any = null;
 
   constructor(private admin: AdminApiService) {}
 
@@ -18,15 +18,19 @@ export class AdminFeaturesComponent implements OnInit {
     this.admin.features().subscribe(f => this.list = f);
   }
 
+  startNew(): void {
+    this.editing = { name: '', unit: '', sortOrder: this.list.length };
+  }
+
   save(): void {
-    this.admin.saveFeature(this.model, this.model.id).subscribe(() => {
-      this.model = { name: '', unit: '', sortOrder: 0 };
+    this.admin.saveFeature(this.editing, this.editing.id).subscribe(() => {
+      this.editing = null;
       this.reload();
     });
   }
 
   edit(f: FeatureHeaderDto): void {
-    this.model = { ...f };
+    this.editing = { ...f };
   }
 
   remove(id: number): void {

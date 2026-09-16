@@ -54,7 +54,12 @@ export class CheckoutComponent implements OnInit {
   submit(): void {
     this.error = '';
     this.api.checkout(this.model).subscribe({
-      next: order => this.router.navigate([this.auth.isLoggedIn ? '/hesabim' : '/'], { queryParams: { siparis: order.orderNumber } }),
+      next: order => {
+        if (order.whatsAppUrl) {
+          window.open(order.whatsAppUrl, '_blank', 'noopener');
+        }
+        this.router.navigate([this.auth.isLoggedIn ? '/hesabim' : '/'], { queryParams: { siparis: order.orderNumber } });
+      },
       error: e => this.error = e.error?.message || 'Sipariş oluşturulamadı.'
     });
   }

@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { CampaignDto, CategoryDto, DashboardDto, FeatureHeaderDto, OrderDetailDto, OrderListDto, ProductDetailDto, UserDto } from '../models/models';
+import { CampaignDto, CategoryDto, DashboardDto, FeatureHeaderDto, OrderDetailDto, OrderListDto, ProductDetailDto, SliderDto, UserDto } from '../models/models';
 
 @Injectable({ providedIn: 'root' })
 export class AdminApiService {
@@ -68,6 +68,10 @@ export class AdminApiService {
     return this.http.put<OrderDetailDto>(`/api/admin/orders/${id}/status`, { status });
   }
 
+  createOrder(body: any): Observable<OrderDetailDto> {
+    return this.http.post<OrderDetailDto>('/api/admin/orders', body);
+  }
+
   campaigns(): Observable<CampaignDto[]> {
     return this.http.get<CampaignDto[]>('/api/admin/campaigns');
   }
@@ -114,5 +118,25 @@ export class AdminApiService {
     const form = new FormData();
     form.append('file', file);
     return this.http.post<CategoryDto>(`/api/admin/categories/${id}/image`, form);
+  }
+
+  sliders(): Observable<SliderDto[]> {
+    return this.http.get<SliderDto[]>('/api/admin/sliders');
+  }
+
+  saveSlider(body: any, id?: number): Observable<SliderDto> {
+    return id
+      ? this.http.put<SliderDto>(`/api/admin/sliders/${id}`, body)
+      : this.http.post<SliderDto>('/api/admin/sliders', body);
+  }
+
+  deleteSlider(id: number): Observable<void> {
+    return this.http.delete<void>(`/api/admin/sliders/${id}`);
+  }
+
+  uploadSliderImage(id: number, file: File): Observable<SliderDto> {
+    const form = new FormData();
+    form.append('file', file);
+    return this.http.post<SliderDto>(`/api/admin/sliders/${id}/image`, form);
   }
 }

@@ -1,26 +1,34 @@
-<div class="admin-shell">
-  <aside class="admin-side">
-    <a routerLink="/admin" class="brand mini">
-      <span class="brand-mark">TF</span>
-      <span>Yönetim</span>
+<div class="admin-shell" [class.menu-open]="menuOpen">
+  <div class="admin-backdrop" *ngIf="menuOpen" (click)="menuOpen = false"></div>
+  <aside class="admin-side" [class.open]="menuOpen">
+    <a routerLink="/admin" class="brand mini" (click)="menuOpen = false">
+      <span class="brand-mark">YH</span>
+      <span>Yakut Hortum</span>
     </a>
     <nav>
       <a routerLink="/admin" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}">Özet</a>
+      <p class="nav-label">Katalog</p>
       <a routerLink="/admin/urunler" routerLinkActive="active">Ürünler</a>
       <a routerLink="/admin/kategoriler" routerLinkActive="active">Kategoriler</a>
+      <a routerLink="/admin/ozellikler" routerLinkActive="active">Özellikler</a>
+      <a routerLink="/admin/slider" routerLinkActive="active">Slider</a>
+      <p class="nav-label">Satış</p>
       <a routerLink="/admin/siparisler" routerLinkActive="active">Siparişler</a>
       <a routerLink="/admin/musteriler" routerLinkActive="active">Müşteriler</a>
       <a routerLink="/admin/kampanyalar" routerLinkActive="active">Kampanyalar</a>
-      <a routerLink="/admin/ozellikler" routerLinkActive="active">Ürün Özellikleri</a>
+      <p class="nav-label">Sistem</p>
       <a routerLink="/admin/kullanicilar" routerLinkActive="active">Kullanıcılar</a>
-      <a routerLink="/">Mağazaya dön</a>
     </nav>
-    <button class="linkish" type="button" (click)="logout()">Çıkış</button>
+    <div class="admin-side-foot">
+      <a routerLink="/">Mağazaya dön</a>
+      <button class="linkish" type="button" (click)="logout()">Çıkış</button>
+    </div>
   </aside>
   <section class="admin-main">
     <header class="admin-top">
-      <strong>Admin Panel</strong>
-      <span *ngIf="auth.user">{{ auth.user.fullName }}</span>
+      <button class="admin-menu-btn" type="button" (click)="menuOpen = !menuOpen" [attr.aria-expanded]="menuOpen" aria-label="Menü">☰</button>
+      <strong>Admin</strong>
+      <span class="admin-user" *ngIf="auth.user">{{ auth.user.fullName }}</span>
     </header>
     <div class="admin-body">
       <router-outlet></router-outlet>

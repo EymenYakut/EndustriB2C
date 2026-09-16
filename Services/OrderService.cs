@@ -11,12 +11,14 @@ public class OrderService
     private readonly AppDbContext _db;
     private readonly CartService _carts;
     private readonly ICurrentUser _current;
+    private readonly OrderAlertService _alerts;
 
-    public OrderService(AppDbContext db, CartService carts, ICurrentUser current)
+    public OrderService(AppDbContext db, CartService carts, ICurrentUser current, OrderAlertService alerts)
     {
         _db = db;
         _carts = carts;
         _current = current;
+        _alerts = alerts;
     }
 
     public async Task<OrderDetailDto> CheckoutAsync(HttpContext http, CheckoutRequest request)
@@ -106,6 +108,111 @@ public class OrderService
         _db.OrderHeaders.Add(order);
         _db.CartItems.RemoveRange(cart.Items);
         cart.UpdatedAt = DateTimeOffset.UtcNow;
+        await _db.SaveChangesAsync();
+
+        order = await _db.OrderHeaders.Include(o => o.Details).Include(o => o.Campaign).FirstAsync(o => o.Id == order.Id);
+        var dto = order.ToDetailDto();
+        dto.WhatsAppUrl = _alerts.BuildWhatsAppUrl(dto);
+        return dto;
+    }
+
+    public async Task<OrderDetailDto> CreateAdminAsync(AdminOrderCreateRequest request)
+    {
+        if (request.Lines is null || request.Lines.Count == 0)
+        {
+            throw new InvalidOperationException("En az bir ürün ekleyin.");
+        }
+
+        var grouped = request.Lines
+            .GroupBy(l => l.ProductId)
+            .Select(g => new { ProductId = g.Key, Quantity = g.Sum(x => x.Quantity) })
+            .ToList();
+
+        var ids = grouped.Select(g => g.ProductId).ToList();
+        var products = await _db.Products
+            .Include(p => p.Translations)
+            .Include(p => p.Prices).ThenInclude(pr => pr.Campaign)
+            .Where(p => ids.Contains(p.Id))
+            .ToListAsync();
+
+        Campaign? campaign = null;
+        if (!string.IsNullOrWhiteSpace(request.CouponCode))
+        {
+            var code = request.CouponCode.Trim().ToUpperInvariant();
+            campaign = await _db.Campaigns.FirstOrDefaultAsync(c => c.CouponCode == code);
+            if (campaign is null || !campaign.IsActive || campaign.StartDate > DateTimeOffset.UtcNow || campaign.EndDate < DateTimeOffset.UtcNow)
+            {
+                throw new InvalidOperationException("Kupon kodu geçersiz veya süresi dolmuş.");
+            }
+        }
+
+        decimal subTotal = 0;
+        var details = new List<OrderDetail>();
+        foreach (var line in grouped)
+        {
+            var product = products.FirstOrDefault(p => p.Id == line.ProductId)
+                ?? throw new InvalidOperationException($"Ürün bulunamadı (#{line.ProductId}).");
+            if (!product.IsActive)
+            {
+                throw new InvalidOperationException($"{product.Sku} satışta değil.");
+            }
+            if (product.Stock < line.Quantity)
+            {
+                throw new InvalidOperationException($"{product.Sku} için yeterli stok yok.");
+            }
+
+            var list = product.ToListDto();
+            var unit = list.DiscountedPrice ?? list.Price;
+            var total = unit * line.Quantity;
+            subTotal += total;
+            details.Add(new OrderDetail
+            {
+                ProductId = product.Id,
+                ProductName = list.Name,
+                ProductSku = product.Sku,
+                Quantity = line.Quantity,
+                UnitPrice = unit,
+                LineTotal = total
+            });
+            product.Stock -= line.Quantity;
+        }
+
+        decimal discount = 0;
+        if (campaign is not null)
+        {
+            if (campaign.MinOrderAmount.HasValue && subTotal < campaign.MinOrderAmount.Value)
+            {
+                throw new InvalidOperationException($"Bu kupon en az {campaign.MinOrderAmount:0.##} TL tutarında geçerlidir.");
+            }
+
+            discount = campaign.DiscountType == DiscountType.Percent
+                ? Math.Round(subTotal * campaign.DiscountValue / 100m, 2)
+                : Math.Min(subTotal, campaign.DiscountValue);
+        }
+
+        var order = new OrderHeader
+        {
+            OrderNumber = $"YH{DateTime.UtcNow:yyyyMMddHHmmss}{Random.Shared.Next(10, 99)}",
+            CustomerName = request.CustomerName.Trim(),
+            CustomerEmail = request.CustomerEmail.Trim().ToLowerInvariant(),
+            CustomerPhone = request.CustomerPhone.Trim(),
+            ShippingFullName = request.ShippingFullName.Trim(),
+            ShippingPhone = request.ShippingPhone.Trim(),
+            ShippingCity = request.ShippingCity.Trim(),
+            ShippingDistrict = request.ShippingDistrict.Trim(),
+            ShippingAddressLine = request.ShippingAddressLine.Trim(),
+            ShippingPostalCode = request.ShippingPostalCode?.Trim(),
+            SubTotal = subTotal,
+            DiscountAmount = discount,
+            Total = subTotal - discount,
+            CampaignId = campaign?.Id,
+            Status = OrderStatus.Pending,
+            Notes = request.Notes,
+            CreatedAt = DateTimeOffset.UtcNow,
+            Details = details
+        };
+
+        _db.OrderHeaders.Add(order);
         await _db.SaveChangesAsync();
 
         order = await _db.OrderHeaders.Include(o => o.Details).Include(o => o.Campaign).FirstAsync(o => o.Id == order.Id);
